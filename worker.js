@@ -1,16 +1,18 @@
 const fs = require('fs');
+const path = require('path');
 const { execSync } = require('child_process');
 
-// 設定檔案名稱
-const CONTENT_FILE = 'content.txt';
-const HTML_FILE = 'index.html';
+// 透過 __dirname 確保腳本行為不受當前工作目錄影響
+const ROOT_DIR = path.resolve(__dirname);
+const CONTENT_FILE = path.join(ROOT_DIR, 'content.txt');
+const HTML_FILE = path.join(ROOT_DIR, 'index.html');
 
 /**
  * 執行指令並回傳結果，出錯時不直接崩潰
  */
 function runCommand(command) {
     try {
-        return execSync(command, { encoding: 'utf8', stdio: 'pipe' }).trim();
+        return execSync(command, { encoding: 'utf8', stdio: 'pipe', cwd: ROOT_DIR }).trim();
     } catch (error) {
         return null;
     }
@@ -20,18 +22,24 @@ async function updateAndPush() {
     try {
         console.log('🚀 開始自動化流程...');
 
-        // 1. 檢查檔案是否存在
-        if (!fs.existsSync(CONTENT_FILE) || !fs.existsSync(HTML_FILE)) {
-            throw new Error('找不到 content.txt 或 index.html');
+        // 確保 content.txt 存在
+        if (!fs.existsSync(CONTENT_FILE)) {
+            console.log('ℹ️ content.txt 不存在，建立預設內容。');
+            fs.writeFileSync(CONTENT_FILE, '測試內容', 'utf8');
         }
 
-        // 2. 讀取與更新 HTML 內容
+        // 確保 index.html 存在
+        if (!fs.existsSync(HTML_FILE)) {
+            throw new Error('找不到 index.html');
+        }
+
+        // 讀取與更新 HTML 內容
         const newContent = fs.readFileSync(CONTENT_FILE, 'utf8');
         let htmlData = fs.readFileSync(HTML_FILE, 'utf8');
 
         // 改良過的正則：支援 id="main-content" 前後有其他屬性或空格
         const regex = /(<[^>]*id=["']main-content["'][^>]*>)([\s\S]*?)(<\/[^>]+>)/i;
-        
+
         if (!regex.test(htmlData)) {
             throw new Error('在 index.html 中找不到 id="main-content" 標籤');
         }
@@ -40,13 +48,15 @@ async function updateAndPush() {
         fs.writeFileSync(HTML_FILE, updatedHtml, 'utf8');
         console.log('✅ HTML 內容已更新');
 
-        // 3. Git 自動化處理
-        // 取得目前的分支名稱 (例如 main 或 master)
-        const currentBranch = runCommand('git rev-parse --abbrev-ref HEAD') || 'main';
-        
-        console.log(`📦 偵測到目前分支: ${currentBranch}`);
+        // Git 自動化處理（若存在 Git repository）
+        const gitBranch = runCommand('git rev-parse --abbrev-ref HEAD');
+        if (!gitBranch) {
+            console.log('⚠️ 未偵測到 Git repository，跳過 Git 操作。');
+            return;
+        }
 
-        // 檢查是否有變更需要提交
+        console.log(`📦 偵測到目前分支: ${gitBranch}`);
+
         const status = runCommand('git status --porcelain');
         if (!status) {
             console.log('ℹ️ 沒有偵測到任何變更，跳過 Git 推送。');
@@ -54,10 +64,9 @@ async function updateAndPush() {
         }
 
         console.log('📤 正在推送變更至 GitHub...');
-        execSync('git add .');
-        // 使用 [skip ci] 可以避免觸發不必要的 CI/CD 流程（選用）
-        execSync(`git commit -m "docs: 自動更新內容 [skip ci]"`);
-        execSync(`git push origin ${currentBranch}`);
+        execSync('git add .', { cwd: ROOT_DIR, stdio: 'inherit' });
+        execSync(`git commit -m "docs: 自動更新內容 [skip ci]"`, { cwd: ROOT_DIR, stdio: 'inherit' });
+        execSync(`git push origin ${gitBranch}`, { cwd: ROOT_DIR, stdio: 'inherit' });
 
         console.log('🎉 全部完成！內容已成功同步至 GitHub。');
 
