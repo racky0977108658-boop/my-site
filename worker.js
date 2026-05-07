@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const https = require('https');
 
 // 透過 __dirname 確保腳本行為不受當前工作目錄影響
 const ROOT_DIR = path.resolve(__dirname);
@@ -18,15 +19,41 @@ function runCommand(command) {
     }
 }
 
+/**
+ * 從公開 API 獲取每日金句
+ */
+function fetchDailyQuote() {
+    return new Promise((resolve, reject) => {
+        const url = 'https://api.quotable.io/random';
+        https.get(url, (res) => {
+            let data = '';
+            res.on('data', (chunk) => {
+                data += chunk;
+            });
+            res.on('end', () => {
+                try {
+                    const quote = JSON.parse(data);
+                    const formattedQuote = `"${quote.content}" - ${quote.author}`;
+                    resolve(formattedQuote);
+                } catch (error) {
+                    reject(new Error('解析 API 響應失敗'));
+                }
+            });
+        }).on('error', (error) => {
+            reject(error);
+        });
+    });
+}
+
 async function updateAndPush() {
     try {
         console.log('🚀 開始自動化流程...');
 
-        // 確保 content.txt 存在
-        if (!fs.existsSync(CONTENT_FILE)) {
-            console.log('ℹ️ content.txt 不存在，建立預設內容。');
-            fs.writeFileSync(CONTENT_FILE, '測試內容', 'utf8');
-        }
+        // 獲取每日金句並寫入 content.txt
+        console.log('📡 正在獲取每日金句...');
+        const dailyQuote = await fetchDailyQuote();
+        fs.writeFileSync(CONTENT_FILE, dailyQuote, 'utf8');
+        console.log('✅ 每日金句已獲取並寫入 content.txt');
 
         // 確保 index.html 存在
         if (!fs.existsSync(HTML_FILE)) {
