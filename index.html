@@ -24,10 +24,15 @@
       max-width: 960px;
     }
     h1 {
-      margin: 0 0 24px;
+      margin: 0 0 20px;
       font-size: clamp(3rem, 5vw, 5rem);
       line-height: 1.05;
       letter-spacing: 0.02em;
+    }
+    #time {
+      font-size: clamp(2rem, 4vw, 4rem);
+      margin: 16px 0;
+      font-weight: 700;
     }
     #main-content {
       padding: 28px;
@@ -35,10 +40,18 @@
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid rgba(255, 255, 255, 0.16);
       box-shadow: 0 24px 80px rgba(0, 0, 0, 0.25);
-      min-height: 180px;
+      min-height: 220px;
       font-size: 1.1rem;
       line-height: 1.8;
       word-break: break-word;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .label {
+      opacity: 0.78;
+      margin-bottom: 8px;
     }
   </style>
 </head>
@@ -46,8 +59,27 @@
   <div class="page-container">
     <h1>我的 AI 自動化站點</h1>
     <div id="main-content">
-這是我的第一號 AI 員工，工作效率 100%
+AI 自動監聽測試成功
 </div>
+      <div id="time">--:--:--</div>
+      <p>這是一個會每秒自動更新時間的動態頁面。</p>
+    </div>
   </div>
+  <script>
+    function pad(num) {
+      return String(num).padStart(2, '0');
+    }
+
+    function updateClock() {
+      const now = new Date();
+      const hours = pad(now.getHours());
+      const minutes = pad(now.getMinutes());
+      const seconds = pad(now.getSeconds());
+      document.getElementById('time').textContent = `${hours}:${minutes}:${seconds}`;
+    }
+
+    updateClock();
+    setInterval(updateClock, 1000);
+  </script>
 </body>
 </html>
