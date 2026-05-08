@@ -8,38 +8,71 @@
     html, body {
       margin: 0;
       min-height: 100%;
-      background: #0b194f;
+      width: 100%;
       color: #ffffff;
       font-family: "Noto Sans TC", "Segoe UI", system-ui, sans-serif;
+      background: #020410;
     }
     body {
       display: flex;
       align-items: center;
       justify-content: center;
+      min-height: 100vh;
       padding: 24px;
       text-align: center;
+      overflow: hidden;
+      position: relative;
+      background: radial-gradient(circle at top, rgba(48, 72, 160, 0.2), transparent 32%),
+                  radial-gradient(circle at 80% 20%, rgba(180, 220, 255, 0.16), transparent 14%),
+                  linear-gradient(180deg, #030615 0%, #081235 35%, #050b1f 70%, #02050f 100%);
+    }
+    #space-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      display: block;
     }
     .page-container {
       width: 100%;
       max-width: 960px;
+      position: relative;
+      z-index: 1;
     }
     h1 {
       margin: 0 0 20px;
       font-size: clamp(3rem, 5vw, 5rem);
       line-height: 1.05;
       letter-spacing: 0.02em;
+      text-shadow: 0 0 16px rgba(160, 220, 255, 0.7);
     }
     #time {
       font-size: clamp(2rem, 4vw, 4rem);
       margin: 16px 0;
       font-weight: 700;
+      color: #8ef7ff;
+      text-shadow:
+        0 0 10px rgba(142, 247, 255, 0.9),
+        0 0 25px rgba(0, 255, 255, 0.5),
+        0 0 40px rgba(148, 255, 255, 0.25);
+      animation: neon-flicker 2.4s infinite alternate;
+    }
+    @keyframes neon-flicker {
+      0%, 100% { opacity: 1; filter: brightness(1.18); }
+      10% { opacity: 0.92; filter: brightness(1.05); }
+      20% { opacity: 0.95; filter: brightness(1.1); }
+      30% { opacity: 0.85; filter: brightness(1.02); }
+      45% { opacity: 0.97; filter: brightness(1.12); }
+      60% { opacity: 0.9; filter: brightness(1.0); }
+      75% { opacity: 0.98; filter: brightness(1.15); }
     }
     #main-content {
       padding: 28px;
       border-radius: 24px;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.25);
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
       min-height: 220px;
       font-size: 1.1rem;
       line-height: 1.8;
@@ -48,22 +81,58 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      backdrop-filter: blur(12px);
     }
     .label {
       opacity: 0.78;
       margin-bottom: 8px;
     }
+    .button-primary {
+      margin: 18px auto 8px;
+      padding: 14px 24px;
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #7d5bff, #3fd1ff);
+      color: #0b1b2e;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 14px 30px rgba(63, 209, 255, 0.25);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .button-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 36px rgba(63, 209, 255, 0.35);
+    }
+    .joke-box {
+      margin-top: 16px;
+      max-width: 720px;
+      padding: 18px 22px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: #eef8ff;
+      font-size: 1rem;
+      line-height: 1.7;
+      text-align: center;
+      min-height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
   </style>
 </head>
 <body>
+  <canvas id="space-canvas"></canvas>
   <div class="page-container">
     <h1>我的 AI 自動化站點</h1>
     <div id="main-content">
-AI 自動監聽測試成功
-</div>
-      <div id="time">--:--:--</div>
-      <p>這是一個會每秒自動更新時間的動態頁面。</p>
+      AI 自動監聽測試成功
     </div>
+    <button class="button-primary" id="joke-button">按我講個笑話</button>
+    <div class="joke-box" id="joke">按下按鈕，讓我告訴你一個隨機笑話！</div>
+    <div id="time">--:--:--</div>
+    <p>這是一個會每秒自動更新時間的動態頁面。</p>
   </div>
   <script>
     function pad(num) {
@@ -80,6 +149,155 @@ AI 自動監聽測試成功
 
     updateClock();
     setInterval(updateClock, 1000);
+
+    const jokes = [
+      '你知道為什麼電腦不喜歡下雨嗎？因為怕當機。',
+      '為什麼太空人永遠不會迷路？因為他們有星羅棋布的導航。',
+      '我今天寫了一個笑話程式，但它太慢了，因為它有太多 bug。',
+      '問：為什麼蘋果公司不賣香蕉？答：因為他們只做“果”然優秀。',
+      '昨天我跟月亮說話，結果它說：「別浪費時間了，我只是一顆衛星。」'
+    ];
+
+    function randomJoke() {
+      const index = Math.floor(Math.random() * jokes.length);
+      return jokes[index];
+    }
+
+    document.getElementById('joke-button').addEventListener('click', () => {
+      document.getElementById('joke').textContent = randomJoke();
+    });
+
+    const canvas = document.getElementById('space-canvas');
+    const ctx = canvas.getContext('2d');
+    let width = 0;
+    let height = 0;
+    const stars = [];
+    const nebula = [];
+    const meteors = [];
+    let clock = 0;
+
+    function randomBetween(min, max) {
+      return min + Math.random() * (max - min);
+    }
+
+    function resizeCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      stars.length = 0;
+      nebula.length = 0;
+
+      const starCount = Math.max(140, Math.floor(width * 0.08));
+      for (let i = 0; i < starCount; i += 1) {
+        stars.push({
+          x: randomBetween(0, width),
+          y: randomBetween(0, height),
+          size: randomBetween(0.3, 1.4),
+          alpha: randomBetween(0.18, 0.95),
+          speed: randomBetween(0.02, 0.12),
+          phase: randomBetween(0, Math.PI * 2)
+        });
+      }
+
+      for (let i = 0; i < 4; i += 1) {
+        nebula.push({
+          x: randomBetween(width * 0.1, width * 0.9),
+          y: randomBetween(height * 0.05, height * 0.6),
+          radius: randomBetween(width * 0.18, width * 0.34),
+          hue: randomBetween(190, 235),
+          saturation: randomBetween(60, 88),
+          alpha: randomBetween(0.06, 0.16),
+          phase: randomBetween(0, Math.PI * 2)
+        });
+      }
+    }
+
+    function drawNebulae() {
+      nebula.forEach((cloud) => {
+        const gradient = ctx.createRadialGradient(
+          cloud.x,
+          cloud.y,
+          cloud.radius * 0.12,
+          cloud.x,
+          cloud.y,
+          cloud.radius
+        );
+        const alpha = cloud.alpha + Math.sin(clock * 0.0007 + cloud.phase) * 0.03;
+        gradient.addColorStop(0, `hsla(${cloud.hue}, ${cloud.saturation}%, 92%, ${alpha})`);
+        gradient.addColorStop(0.4, `hsla(${cloud.hue}, ${cloud.saturation}%, 74%, ${alpha * 0.28})`);
+        gradient.addColorStop(1, 'rgba(2, 6, 25, 0)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(cloud.x - cloud.radius, cloud.y - cloud.radius, cloud.radius * 2, cloud.radius * 2);
+      });
+    }
+
+    function drawStars() {
+      stars.forEach((star) => {
+        const twinkle = star.alpha + Math.sin(clock * 0.0012 + star.phase) * 0.18;
+        ctx.fillStyle = `rgba(255,255,255,${Math.max(0.08, Math.min(1, twinkle))})`;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+        ctx.fill();
+        star.y += star.speed;
+        if (star.y > height) {
+          star.y = 0;
+          star.x = randomBetween(0, width);
+        }
+      });
+    }
+
+    function createMeteor() {
+      meteors.push({
+        x: randomBetween(0, width * 0.8),
+        y: randomBetween(0, height * 0.25),
+        length: randomBetween(120, 220),
+        speed: randomBetween(6, 10),
+        angle: randomBetween(Math.PI * 0.7, Math.PI * 0.82),
+        alpha: 1,
+        fade: randomBetween(0.012, 0.025)
+      });
+    }
+
+    function drawMeteors() {
+      meteors.forEach((meteor, index) => {
+        const endX = meteor.x + Math.cos(meteor.angle) * meteor.length;
+        const endY = meteor.y + Math.sin(meteor.angle) * meteor.length;
+        const gradient = ctx.createLinearGradient(meteor.x, meteor.y, endX, endY);
+        gradient.addColorStop(0, `rgba(255,255,255,${meteor.alpha})`);
+        gradient.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(meteor.x, meteor.y);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+        meteor.x += Math.cos(meteor.angle) * meteor.speed;
+        meteor.y += Math.sin(meteor.angle) * meteor.speed;
+        meteor.alpha -= meteor.fade;
+        if (meteor.alpha <= 0 || meteor.x > width + 40 || meteor.y > height + 40) {
+          meteors.splice(index, 1);
+        }
+      });
+    }
+
+    function animateSpace() {
+      clock += 1;
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = 'rgba(2, 5, 16, 0.72)';
+      ctx.fillRect(0, 0, width, height);
+      drawNebulae();
+      drawStars();
+      drawMeteors();
+      if (Math.random() > 0.97 && meteors.length < 2) {
+        createMeteor();
+      }
+      requestAnimationFrame(animateSpace);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    animateSpace();
   </script>
 </body>
-</html>
+</html>git add .
+git commit -m "docs: 更新背景動畫效果"
+git push origin main

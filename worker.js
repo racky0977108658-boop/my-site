@@ -25,22 +25,44 @@ function runCommand(command) {
 function fetchDailyQuote() {
     return new Promise((resolve, reject) => {
         const url = 'https://api.quotable.io/random';
-        https.get(url, (res) => {
+        const request = https.get(url, (res) => {
+            // 檢查 HTTP 狀態碼
+            if (res.statusCode !== 200) {
+                reject(new Error(`API 返回狀態碼 ${res.statusCode}`));
+                return;
+            }
+
             let data = '';
+            const maxDataSize = 10 * 1024; // 最大 10KB
+
             res.on('data', (chunk) => {
                 data += chunk;
+                if (data.length > maxDataSize) {
+                    request.destroy();
+                    reject(new Error('API 響應數據過大'));
+                }
             });
+
             res.on('end', () => {
                 try {
                     const quote = JSON.parse(data);
+                    if (!quote.content || !quote.author) {
+                        throw new Error('API 響應缺少必要字段');
+                    }
                     const formattedQuote = `"${quote.content}" - ${quote.author}`;
                     resolve(formattedQuote);
                 } catch (error) {
-                    reject(new Error('解析 API 響應失敗'));
+                    reject(new Error(`解析 API 響應失敗: ${error.message}`));
                 }
             });
         }).on('error', (error) => {
-            reject(error);
+            reject(new Error(`API 請求失敗: ${error.message}`));
+        });
+
+        // 設定 10 秒超時
+        request.setTimeout(10000, () => {
+            request.destroy();
+            reject(new Error('API 請求超時'));
         });
     });
 }
@@ -64,14 +86,27 @@ async function updateAndPush() {
         const newContent = fs.readFileSync(CONTENT_FILE, 'utf8');
         let htmlData = fs.readFileSync(HTML_FILE, 'utf8');
 
-        // 改良過的正則：支援 id="main-content" 前後有其他屬性或空格
-        const regex = /(<[^>]*id=["']main-content["'][^>]*>)([\s\S]*?)(<\/[^>]+>)/i;
-
+        // 改良的正則 - 更好的容錯度
+        const regex = /(<div[^>]*id=["']main-content["'][^>]*>)([\s\S]*?)(<\/div\s*>)/i;
+        
+        // 第一次嘗試符合的正則
         if (!regex.test(htmlData)) {
-            throw new Error('在 index.html 中找不到 id="main-content" 標籤');
+            // 嘗試寬鬆的正則以診斷問題
+            const debugRegex = /id=["']main-content["']/i;
+            if (!debugRegex.test(htmlData)) {
+                throw new Error('在 index.html 中找不到 id="main-content" 標籤');
+            } else {
+                throw new Error('找到 id="main-content"，但標籤格式不符期望。請檢查 HTML 結構');
+            }
         }
 
         const updatedHtml = htmlData.replace(regex, `$1\n${newContent}\n$3`);
+        
+        // 驗證替換成功
+        if (updatedHtml === htmlData) {
+            throw new Error('HTML 正則替換未生效，請檢查格式');
+        }
+        
         fs.writeFileSync(HTML_FILE, updatedHtml, 'utf8');
         console.log('✅ HTML 內容已更新');
 
@@ -91,14 +126,31 @@ async function updateAndPush() {
         }
 
         console.log('📤 正在推送變更至 GitHub...');
-        execSync('git add .', { cwd: ROOT_DIR, stdio: 'inherit' });
-        execSync(`git commit -m "docs: 自動更新內容 [skip ci]"`, { cwd: ROOT_DIR, stdio: 'inherit' });
-        execSync(`git push origin ${gitBranch}`, { cwd: ROOT_DIR, stdio: 'inherit' });
-
-        console.log('🎉 全部完成！內容已成功同步至 GitHub。');
+        try {
+            execSync('git add .', { cwd: ROOT_DIR, stdio: 'inherit' });
+            execSync(`git commit -m "docs: 自動更新內容 [skip ci]"`, { cwd: ROOT_DIR, stdio: 'inherit' });
+            execSync(`git push origin ${gitBranch}`, { cwd: ROOT_DIR, stdio: 'inherit' });
+            console.log('🎉 全部完成！內容已成功同步至 GitHub。');
+        } catch (gitError) {
+            console.error('⚠️ Git 操作失敗:', gitError.message);
+            console.error('💡 可能原因：');
+            console.error('   1. 無 GitHub 認證令牌或憑證');
+            console.error('   2. 倉庫是私有的');
+            console.error('   3. 網路連接問題');
+            console.error('   4. 遠端分支不存在');
+            throw gitError;
+        }
 
     } catch (error) {
         console.error('❌ 執行失敗:', error.message);
+        console.error('\n📋 詳細錯誤信息：');
+        if (error.stdout) console.error('stdout:', error.stdout.toString());
+        if (error.stderr) console.error('stderr:', error.stderr.toString());
+        console.error('\n💡 故障排除建議：');
+        console.error('1. 檢查網路連接');
+        console.error('2. 驗證 API 服務是否在線');
+        console.error('3. 檢查 HTML 文件結構是否正確');
+        console.error('4. 驗證 Git 認證設定');
         process.exit(1);
     }
 }
