@@ -293,7 +293,17 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 // ═══════════════════════════════
 // CONFIG — 部署後填入 Netlify URL
 // ═══════════════════════════════
-const NETLIFY_FUNCTION_URL = '/.netlify/functions/trigger-workflow';
+// Make Webhook URLs — 直接觸發
+const MAKE_WEBHOOKS = {
+  'seo-report': 'https://hook.eu1.make.com/ipudnfxc29rc4l32quajxukx63qgs7vd',
+  'social-posts': '',
+  'bizdev-proposal': '',
+  'ceo-report': '',
+  'collector-newsletter': '',
+  'invoice-process': '',
+  'bug-report': '',
+  'canva-design': ''
+};
 
 // ═══════════════════════════════
 // WORKFLOWS DATA
@@ -415,7 +425,13 @@ async function triggerWorkflow(workflowId, btnEl) {
   if (!wf) return;
 
   if (wf.status === '待建立') {
-    showToast(`「${wf.name}」尚未串接 Make，即將開始建立...`, 'info');
+    showToast(`「${wf.name}」尚未串接 Make，請先建立流程`, 'info');
+    return;
+  }
+
+  const webhookUrl = MAKE_WEBHOOKS[workflowId];
+  if (!webhookUrl) {
+    showToast(`「${wf.name}」的 Webhook 尚未設定`, 'error');
     return;
   }
 
@@ -425,24 +441,19 @@ async function triggerWorkflow(workflowId, btnEl) {
   showToast(`正在觸發「${wf.name}」...`, 'info');
 
   try {
-    const res = await fetch(NETLIFY_FUNCTION_URL, {
+    // 用 no-cors 模式直接打 Make Webhook（Make 接受跨域請求）
+    await fetch(webhookUrl, {
       method: 'POST',
+      mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ workflowId })
+      body: JSON.stringify({ trigger: workflowId, timestamp: new Date().toISOString() })
     });
-    const data = await res.json();
-
-    if (data.success) {
-      showToast(`✅ 「${wf.name}」已成功觸發！Make 正在執行中。`, 'success');
-      addExecLog(wf.name, '成功', wf.color);
-    } else {
-      showToast(`⚠️ ${data.message}`, 'error');
-      addExecLog(wf.name, '失敗', 'var(--red)');
-    }
+    // no-cors 模式無法讀回應，但只要沒丟出 error 就代表成功送出
+    showToast(`✅ 「${wf.name}」已觸發！Make 正在執行，稍後查收 Gmail。`, 'success');
+    addExecLog(wf.name, '已觸發', wf.color);
   } catch (err) {
-    // 本地開啟時 Netlify Function 不可用，模擬成功提示
-    showToast(`📋 本地模式：部署到 Netlify 後即可真正觸發「${wf.name}」`, 'info');
-    addExecLog(wf.name, '本地模式', 'var(--text-dim)');
+    showToast(`❌ 觸發失敗：${err.message}`, 'error');
+    addExecLog(wf.name, '失敗', 'var(--red)');
   }
 
   btnEl.disabled = false;
