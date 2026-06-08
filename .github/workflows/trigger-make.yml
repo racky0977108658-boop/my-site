@@ -1,0 +1,26 @@
+name: Trigger Make Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      scenario_id:
+        description: 'Make Scenario ID'
+        required: true
+        default: '6076977'
+      workflow_name:
+        description: 'Workflow name'
+        required: false
+        default: 'SEO Report'
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Make Scenario
+        run: |
+          RESULT=$(curl -s -X POST \
+            "https://eu1.make.com/api/v2/scenarios/${{ github.event.inputs.scenario_id }}/run" \
+            -H "Authorization: Token ${{ secrets.MAKE_API_TOKEN }}" \
+            -H "Content-Type: application/json")
+          echo "Result: $RESULT"
+          echo "Triggered: ${{ github.event.inputs.workflow_name }}"
