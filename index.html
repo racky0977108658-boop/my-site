@@ -4,206 +4,821 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NOX AI Company OS</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
+/* ─── RESET ─── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+
+/* ─── DESIGN TOKENS ─── */
 :root{
-  --bg:#07090e;--bg2:#0c0f18;--bg3:#12151f;--bg4:#181c28;
-  --gold:#c9a84c;--gold2:#e8c97a;--gold-dim:rgba(201,168,76,.10);--gold-glow:rgba(201,168,76,.22);
-  --text:#e8e4dc;--text-dim:#7a7468;--text-muted:#3e3c38;
-  --green:#4caf7d;--green-dim:rgba(76,175,125,.12);
-  --blue:#5b8dd9;--blue-dim:rgba(91,141,217,.12);
-  --orange:#d97c3b;--orange-dim:rgba(217,124,59,.12);
-  --red:#c94c4c;--red-dim:rgba(201,76,76,.12);
-  --purple:#9b6dd9;--purple-dim:rgba(155,109,217,.12);
-  --border:rgba(201,168,76,.14);--border-subtle:rgba(255,255,255,.05);
-  --radius:12px;--radius-sm:8px;
+  /* Surfaces */
+  --bg-void:#050505;
+  --bg-depth:#0a0a0f;
+  --bg-raise:#111118;
+  --bg-float:#18181f;
+  --bg-mist:rgba(255,255,255,.04);
+  --bg-mist2:rgba(255,255,255,.07);
+
+  /* Gold system — single accent */
+  --gold:#c9a84c;
+  --gold-bright:#e8c97a;
+  --gold-dim:rgba(201,168,76,.10);
+  --gold-mid:rgba(201,168,76,.18);
+  --gold-glow:rgba(201,168,76,.28);
+  --gold-border:rgba(201,168,76,.20);
+
+  /* Semantic colors */
+  --green:#3ecf8e;
+  --green-dim:rgba(62,207,142,.10);
+  --blue:#4f8ef7;
+  --blue-dim:rgba(79,142,247,.10);
+  --orange:#f7823c;
+  --orange-dim:rgba(247,130,60,.10);
+  --red:#e05252;
+  --red-dim:rgba(224,82,82,.10);
+  --purple:#a78bfa;
+  --purple-dim:rgba(167,139,250,.10);
+
+  /* Text */
+  --text-primary:#f0ede8;
+  --text-secondary:#8a8780;
+  --text-muted:#3d3c3a;
+
+  /* Borders */
+  --border-subtle:rgba(255,255,255,.06);
+  --border-mid:rgba(255,255,255,.10);
+  --border-gold:rgba(201,168,76,.20);
+
+  /* Radii */
+  --r-xs:6px;
+  --r-sm:10px;
+  --r-md:16px;
+  --r-lg:24px;
+  --r-xl:32px;
+  --r-full:9999px;
+
+  /* Motion — spring cubic-bezier */
+  --spring:cubic-bezier(0.32,0.72,0,1);
+  --spring-fast:cubic-bezier(0.34,1.56,0.64,1);
+  --ease-out:cubic-bezier(0.16,1,0.3,1);
 }
-html{scroll-behavior:smooth}
-body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
-body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 40% at 50% -10%,rgba(201,168,76,.06) 0%,transparent 60%);pointer-events:none;z-index:0}
+
+/* ─── BASE ─── */
+body{
+  font-family:'Geist','Noto Sans TC',sans-serif;
+  background:var(--bg-void);
+  color:var(--text-primary);
+  min-height:100vh;
+  overflow-x:hidden;
+  font-feature-settings:'tnum';
+}
+
+/* Grain overlay — fixed, GPU safe */
+body::after{
+  content:'';
+  position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity:.025;
+  pointer-events:none;
+  z-index:9999;
+}
+
+/* Ambient mesh gradient */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 10%,rgba(201,168,76,.05) 0%,transparent 60%),
+    radial-gradient(ellipse 40% 40% at 85% 85%,rgba(79,142,247,.04) 0%,transparent 55%),
+    radial-gradient(ellipse 50% 30% at 60% 50%,rgba(167,139,250,.02) 0%,transparent 50%);
+  pointer-events:none;
+  z-index:0;
+}
+
+/* ─── LAYOUT ─── */
 .app{display:flex;min-height:100vh;position:relative;z-index:1}
 
-/* SIDEBAR */
-.sidebar{width:230px;min-height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
-.sidebar-logo{padding:26px 22px 18px;border-bottom:1px solid var(--border-subtle)}
-.logo-mark{font-family:'DM Serif Display',serif;font-size:20px;color:var(--gold);letter-spacing:.08em}
-.logo-sub{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:.2em;margin-top:3px}
-.sidebar-section{padding:18px 10px 6px}
-.sidebar-label{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted);letter-spacing:.25em;text-transform:uppercase;padding:0 12px;margin-bottom:5px}
-.nav-item{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:var(--radius-sm);cursor:pointer;transition:all .2s;font-size:13px;color:var(--text-dim)}
-.nav-item:hover{background:var(--bg4);color:var(--text)}
-.nav-item.active{background:var(--gold-dim);color:var(--gold2);border:1px solid var(--border)}
-.nav-icon{font-size:14px;width:18px;text-align:center}
-.nav-badge{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:10px;background:var(--gold-dim);color:var(--gold);padding:1px 7px;border-radius:20px;border:1px solid var(--border)}
-.sidebar-bottom{margin-top:auto;padding:14px;border-top:1px solid var(--border-subtle)}
-.pulse-row{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text-dim)}
-.pulse-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+/* ─── SIDEBAR ─── */
+.sidebar{
+  width:220px;
+  flex-shrink:0;
+  position:sticky;
+  top:0;height:100vh;
+  overflow-y:auto;
+  display:flex;flex-direction:column;
+  background:var(--bg-depth);
+  border-right:1px solid var(--border-subtle);
+  padding:0 10px;
+}
+.sidebar::-webkit-scrollbar{display:none}
 
-/* MAIN */
-.main{flex:1;overflow-y:auto}
-.topbar{position:sticky;top:0;background:rgba(7,9,14,.93);backdrop-filter:blur(18px);border-bottom:1px solid var(--border-subtle);padding:0 30px;height:58px;display:flex;align-items:center;justify-content:space-between;z-index:100}
-.topbar-title{font-family:'DM Serif Display',serif;font-size:17px}
+.sidebar-logo{
+  padding:28px 12px 20px;
+  border-bottom:1px solid var(--border-subtle);
+  margin-bottom:8px;
+}
+.logo-wordmark{
+  font-family:'DM Serif Display',serif;
+  font-size:22px;
+  color:var(--gold-bright);
+  letter-spacing:.04em;
+  line-height:1;
+}
+.logo-tagline{
+  font-family:'Geist Mono',monospace;
+  font-size:9px;
+  color:var(--text-muted);
+  letter-spacing:.25em;
+  text-transform:uppercase;
+  margin-top:5px;
+}
+
+.nav-section{padding:16px 0 4px}
+.nav-label{
+  font-family:'Geist Mono',monospace;
+  font-size:9px;
+  color:var(--text-muted);
+  letter-spacing:.3em;
+  text-transform:uppercase;
+  padding:0 12px;
+  margin-bottom:4px;
+}
+
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;
+  border-radius:var(--r-sm);
+  cursor:pointer;
+  font-size:13px;
+  color:var(--text-secondary);
+  transition:all 300ms var(--spring);
+  position:relative;
+  user-select:none;
+}
+.nav-item:hover{background:var(--bg-mist);color:var(--text-primary)}
+.nav-item.active{
+  background:var(--gold-dim);
+  color:var(--gold-bright);
+  border:1px solid var(--border-gold);
+}
+.nav-item.active::before{
+  content:'';
+  position:absolute;left:-10px;top:50%;transform:translateY(-50%);
+  width:3px;height:60%;
+  background:var(--gold);
+  border-radius:0 var(--r-xs) var(--r-xs) 0;
+}
+.nav-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.nav-badge{
+  margin-left:auto;
+  font-family:'Geist Mono',monospace;
+  font-size:9px;
+  background:var(--gold-dim);
+  color:var(--gold);
+  padding:2px 7px;
+  border-radius:var(--r-full);
+  border:1px solid var(--border-gold);
+  font-variant-numeric:tabular-nums;
+}
+
+.sidebar-foot{
+  margin-top:auto;
+  padding:16px 12px;
+  border-top:1px solid var(--border-subtle);
+}
+.status-pill{
+  display:flex;align-items:center;gap:7px;
+  font-family:'Geist Mono',monospace;
+  font-size:10px;
+  color:var(--text-secondary);
+}
+.status-dot{
+  width:6px;height:6px;
+  border-radius:50%;
+  background:var(--green);
+  animation:heartbeat 2.4s var(--ease-out) infinite;
+}
+@keyframes heartbeat{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.6);opacity:.4}}
+
+/* ─── MAIN ─── */
+.main{flex:1;overflow-y:auto;min-width:0}
+
+/* ─── TOPBAR ─── */
+.topbar{
+  position:sticky;top:0;z-index:100;
+  height:56px;
+  padding:0 28px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(5,5,5,.85);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border-subtle);
+}
+.topbar-title{
+  font-family:'Geist',sans-serif;
+  font-size:14px;
+  font-weight:500;
+  color:var(--text-primary);
+  letter-spacing:-.01em;
+}
 .topbar-right{display:flex;align-items:center;gap:14px}
-.topbar-time{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim)}
-.live-badge{display:inline-flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--green);letter-spacing:.15em}
-.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s ease-in-out infinite}
+.live-indicator{
+  display:flex;align-items:center;gap:6px;
+  font-family:'Geist Mono',monospace;
+  font-size:9px;
+  color:var(--green);
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+.live-dot{
+  width:5px;height:5px;
+  border-radius:50%;
+  background:var(--green);
+  animation:heartbeat 1.6s var(--ease-out) infinite;
+}
+.clock{
+  font-family:'Geist Mono',monospace;
+  font-size:12px;
+  color:var(--text-secondary);
+  font-variant-numeric:tabular-nums;
+}
 
-.page{padding:28px 30px;display:none}
+/* ─── PAGES ─── */
+.page{padding:28px;display:none;animation:pageIn 400ms var(--ease-out)}
 .page.active{display:block}
-.section-header{display:flex;align-items:baseline;gap:10px;margin-bottom:22px}
-.section-title{font-family:'DM Serif Display',serif;font-size:24px}
-.section-sub{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:.15em}
+@keyframes pageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
-/* STATS */
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
-.stat-card{background:var(--bg3);border:1px solid var(--border-subtle);border-radius:var(--radius);padding:18px;position:relative;overflow:hidden;transition:border-color .2s}
-.stat-card:hover{border-color:var(--border)}
-.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.4}
-.stat-label{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px}
-.stat-value{font-family:'DM Serif Display',serif;font-size:30px;color:var(--gold2);line-height:1;margin-bottom:5px}
-.stat-change{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--green)}
+/* ─── SECTION HEADER ─── */
+.section-header{display:flex;align-items:baseline;gap:12px;margin-bottom:20px}
+.section-title{
+  font-family:'DM Serif Display',serif;
+  font-size:22px;
+  color:var(--text-primary);
+  letter-spacing:-.01em;
+}
+.section-eyebrow{
+  font-family:'Geist Mono',monospace;
+  font-size:9px;
+  color:var(--text-muted);
+  letter-spacing:.2em;
+  text-transform:uppercase;
+}
 
-/* WORKFLOW GRID */
-.workflow-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
-.workflow-card{background:var(--bg3);border:1px solid var(--border-subtle);border-radius:var(--radius);padding:22px;transition:all .25s;position:relative;overflow:hidden}
-.workflow-card:hover{border-color:var(--wf-color);box-shadow:0 4px 20px rgba(0,0,0,.3)}
-.workflow-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--wf-color);opacity:.6}
-.wf-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
-.wf-icon{width:44px;height:44px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:20px;background:var(--wf-bg);border:1px solid var(--wf-border)}
-.wf-status{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:3px 9px;border-radius:20px;background:var(--wf-bg);color:var(--wf-color);border:1px solid var(--wf-border);letter-spacing:.1em}
-.wf-name{font-family:'DM Serif Display',serif;font-size:16px;margin-bottom:3px}
-.wf-dept{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted);letter-spacing:.15em;margin-bottom:10px}
-.wf-desc{font-size:12px;color:var(--text-dim);line-height:1.6;margin-bottom:14px}
+/* ─── STATS BENTO ─── */
+.stats-bento{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  margin-bottom:24px;
+}
+
+/* Double-bezel card */
+.bezel{
+  background:var(--bg-mist);
+  border:1px solid var(--border-subtle);
+  border-radius:var(--r-xl);
+  padding:2px;
+  transition:border-color 350ms var(--spring);
+}
+.bezel:hover{border-color:var(--border-mid)}
+.bezel-inner{
+  background:var(--bg-raise);
+  border-radius:calc(var(--r-xl) - 3px);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.06);
+  padding:20px;
+  height:100%;
+}
+
+.stat-label{
+  font-family:'Geist Mono',monospace;
+  font-size:9px;
+  color:var(--text-secondary);
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+.stat-value{
+  font-family:'DM Serif Display',serif;
+  font-size:34px;
+  color:var(--gold-bright);
+  line-height:1;
+  margin-bottom:6px;
+  font-variant-numeric:tabular-nums;
+}
+.stat-delta{
+  font-family:'Geist Mono',monospace;
+  font-size:10px;
+  color:var(--green);
+  letter-spacing:.05em;
+}
+
+/* ─── WORKFLOW BENTO GRID ─── */
+.workflow-bento{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  grid-template-rows:auto auto;
+  gap:12px;
+  margin-bottom:24px;
+}
+.wf-card{
+  background:var(--bg-mist);
+  border:1px solid var(--border-subtle);
+  border-radius:var(--r-lg);
+  padding:1.5px;
+  cursor:pointer;
+  transition:all 350ms var(--spring);
+  position:relative;
+}
+.wf-card:hover{
+  border-color:var(--wf-color,var(--border-mid));
+  transform:translateY(-2px);
+  box-shadow:0 12px 32px rgba(0,0,0,.4);
+}
+.wf-inner{
+  background:var(--bg-raise);
+  border-radius:calc(var(--r-lg) - 2px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+  padding:20px;
+  height:100%;
+  display:flex;flex-direction:column;
+}
+.wf-card.span-2{grid-column:span 2}
+.wf-card.span-3{grid-column:span 3}
+.wf-card.span-4{grid-column:span 4}
+
+.wf-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+.wf-icon-wrap{
+  width:40px;height:40px;
+  border-radius:var(--r-sm);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;
+  background:var(--wf-bg,var(--bg-float));
+  border:1px solid var(--wf-border,var(--border-subtle));
+}
+.wf-badge{
+  font-family:'Geist Mono',monospace;
+  font-size:9px;
+  padding:3px 9px;
+  border-radius:var(--r-full);
+  background:var(--wf-bg,var(--bg-float));
+  color:var(--wf-color,var(--text-secondary));
+  border:1px solid var(--wf-border,var(--border-subtle));
+  letter-spacing:.08em;
+}
+.wf-name{
+  font-family:'Geist',sans-serif;
+  font-size:14px;
+  font-weight:600;
+  color:var(--text-primary);
+  margin-bottom:2px;
+  letter-spacing:-.01em;
+}
+.wf-dept{
+  font-family:'Geist Mono',monospace;
+  font-size:9px;
+  color:var(--text-muted);
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  margin-bottom:8px;
+}
+.wf-desc{font-size:12px;color:var(--text-secondary);line-height:1.65;flex:1;margin-bottom:14px}
 .wf-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
-.wf-tag{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 8px;border-radius:4px;background:var(--bg4);color:var(--text-muted);border:1px solid var(--border-subtle)}
-.wf-footer{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid var(--border-subtle);gap:10px}
-.wf-last-run{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted)}
+.wf-tag{
+  font-family:'Geist Mono',monospace;
+  font-size:9px;
+  padding:2px 8px;
+  border-radius:var(--r-xs);
+  background:rgba(255,255,255,.04);
+  color:var(--text-muted);
+  border:1px solid var(--border-subtle);
+}
+.wf-foot{
+  display:flex;align-items:center;justify-content:space-between;
+  padding-top:12px;
+  border-top:1px solid var(--border-subtle);
+  margin-top:auto;
+}
+.wf-last{
+  font-family:'Geist Mono',monospace;
+  font-size:10px;
+  color:var(--text-muted);
+}
 
-/* TRIGGER BUTTON */
-.trigger-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-sm);border:1px solid var(--wf-color);background:var(--wf-bg);color:var(--wf-color);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0}
-.trigger-btn:hover{background:var(--wf-color);color:var(--bg)}
-.trigger-btn:disabled{opacity:.5;cursor:not-allowed}
-.trigger-btn.loading{animation:btnPulse 1s ease-in-out infinite}
-@keyframes btnPulse{0%,100%{opacity:1}50%{opacity:.5}}
+/* ─── TRIGGER BUTTON — button-in-button ─── */
+.trigger-btn{
+  display:inline-flex;align-items:center;gap:0;
+  padding:7px 7px 7px 14px;
+  border-radius:var(--r-full);
+  border:1px solid var(--wf-color,var(--border-gold));
+  background:var(--wf-bg,var(--gold-dim));
+  color:var(--wf-color,var(--gold));
+  font-family:'Geist Mono',monospace;
+  font-size:10px;
+  letter-spacing:.05em;
+  cursor:pointer;
+  transition:all 300ms var(--spring);
+  white-space:nowrap;
+  flex-shrink:0;
+  group:true;
+}
+.trigger-btn:hover{
+  background:var(--wf-color,var(--gold));
+  color:var(--bg-void);
+}
+.trigger-btn:active{transform:scale(.97)}
+.trigger-btn:disabled{opacity:.45;cursor:not-allowed}
+.trigger-btn.loading{animation:btnPulse .9s var(--ease-out) infinite}
+@keyframes btnPulse{0%,100%{opacity:1}50%{opacity:.4}}
+.btn-arrow{
+  width:22px;height:22px;
+  border-radius:50%;
+  background:rgba(0,0,0,.15);
+  display:flex;align-items:center;justify-content:center;
+  margin-left:8px;
+  font-size:10px;
+  transition:transform 300ms var(--spring-fast);
+}
+.trigger-btn:hover .btn-arrow{transform:translate(1px,-1px) scale(1.1)}
 
-/* TOAST */
-.toast-container{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px}
-.toast{padding:12px 18px;border-radius:var(--radius-sm);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.05em;animation:toastIn .3s ease;border:1px solid;max-width:320px}
-.toast.success{background:var(--green-dim);color:var(--green);border-color:rgba(76,175,125,.3)}
-.toast.error{background:var(--red-dim);color:var(--red);border-color:rgba(201,76,76,.3)}
-.toast.info{background:var(--gold-dim);color:var(--gold2);border-color:var(--border)}
-@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+/* ─── TWO COLUMN ─── */
+.two-col{display:grid;grid-template-columns:1fr 300px;gap:12px}
 
-/* DEPT GRID */
-.dept-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px}
-.dept-card{background:var(--bg3);border:1px solid var(--border-subtle);border-radius:var(--radius);padding:20px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
-.dept-card:hover{border-color:var(--dept-color);transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.35)}
-.dept-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--dept-color);opacity:0;transition:opacity .25s}
-.dept-card:hover::after{opacity:1}
-.dept-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
-.dept-icon{width:42px;height:42px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--dept-bg);border:1px solid var(--dept-border)}
-.dept-pill{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:3px 9px;border-radius:20px;background:var(--dept-bg);color:var(--dept-color);border:1px solid var(--dept-border);letter-spacing:.1em}
-.dept-name{font-family:'DM Serif Display',serif;font-size:16px;margin-bottom:3px}
-.dept-name-en{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted);letter-spacing:.15em;margin-bottom:10px}
-.dept-footer{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid var(--border-subtle)}
-.dept-metric{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim)}
-.dept-metric span{color:var(--dept-color)}
+/* ─── PANEL ─── */
+.panel{
+  background:var(--bg-mist);
+  border:1px solid var(--border-subtle);
+  border-radius:var(--r-lg);
+  overflow:hidden;
+  transition:border-color 300ms var(--spring);
+}
+.panel:hover{border-color:var(--border-mid)}
+.panel-head{
+  padding:14px 18px;
+  border-bottom:1px solid var(--border-subtle);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.panel-title{
+  font-family:'Geist Mono',monospace;
+  font-size:10px;
+  color:var(--text-secondary);
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+.panel-count{
+  font-family:'Geist Mono',monospace;
+  font-size:10px;
+  color:var(--gold);
+  background:var(--gold-dim);
+  padding:2px 8px;
+  border-radius:var(--r-full);
+  border:1px solid var(--border-gold);
+  font-variant-numeric:tabular-nums;
+}
 
-/* TASK FEED */
-.two-col{display:grid;grid-template-columns:1fr 320px;gap:18px}
-.panel{background:var(--bg3);border:1px solid var(--border-subtle);border-radius:var(--radius);overflow:hidden}
-.panel-header{padding:14px 18px;border-bottom:1px solid var(--border-subtle);display:flex;align-items:center;justify-content:space-between}
-.panel-title{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:.15em;text-transform:uppercase}
-.panel-count{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gold);background:var(--gold-dim);padding:2px 8px;border-radius:20px}
-.task-item{padding:14px 18px;border-bottom:1px solid var(--border-subtle);display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;transition:background .15s}
-.task-item:hover{background:var(--bg4)}
+/* ─── TASK ITEMS ─── */
+.task-item{
+  padding:13px 18px;
+  border-bottom:1px solid var(--border-subtle);
+  display:grid;
+  grid-template-columns:8px 1fr auto;
+  gap:10px;
+  align-items:center;
+  transition:background 200ms var(--spring);
+}
+.task-item:hover{background:var(--bg-mist)}
 .task-item:last-child{border-bottom:none}
-.task-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.task-title{font-size:12px;color:var(--text);margin-bottom:2px}
-.task-meta{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted)}
-.task-time{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted);white-space:nowrap}
+.task-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.task-name{font-size:12px;color:var(--text-primary);margin-bottom:1px;letter-spacing:-.01em}
+.task-dept{font-family:'Geist Mono',monospace;font-size:9px;color:var(--text-muted)}
+.task-time{font-family:'Geist Mono',monospace;font-size:10px;color:var(--text-muted);white-space:nowrap}
 
-/* CHAT MODAL */
-.chat-overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(6px);z-index:200;display:none;align-items:center;justify-content:center}
+/* ─── DEPT GRID ─── */
+.dept-bento{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+  margin-bottom:24px;
+}
+.dept-card{
+  background:var(--bg-mist);
+  border:1px solid var(--border-subtle);
+  border-radius:var(--r-lg);
+  padding:1.5px;
+  cursor:pointer;
+  transition:all 350ms var(--spring);
+}
+.dept-card:hover{
+  border-color:var(--dc-color,var(--border-mid));
+  transform:translateY(-2px);
+  box-shadow:0 8px 24px rgba(0,0,0,.35);
+}
+.dept-inner{
+  background:var(--bg-raise);
+  border-radius:calc(var(--r-lg) - 2px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+  padding:20px;
+}
+.dept-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.dept-icon-wrap{
+  width:42px;height:42px;
+  border-radius:var(--r-sm);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;
+  background:var(--dc-bg,var(--bg-float));
+  border:1px solid var(--dc-border,var(--border-subtle));
+}
+.dept-status{
+  font-family:'Geist Mono',monospace;
+  font-size:9px;
+  padding:3px 9px;
+  border-radius:var(--r-full);
+  background:var(--dc-bg,var(--bg-float));
+  color:var(--dc-color,var(--text-secondary));
+  border:1px solid var(--dc-border,var(--border-subtle));
+  letter-spacing:.08em;
+}
+.dept-name{
+  font-family:'Geist',sans-serif;
+  font-size:15px;font-weight:600;
+  color:var(--text-primary);
+  margin-bottom:2px;
+  letter-spacing:-.01em;
+}
+.dept-name-en{
+  font-family:'Geist Mono',monospace;
+  font-size:9px;
+  color:var(--text-muted);
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  margin-bottom:12px;
+}
+.dept-foot{
+  display:flex;align-items:center;justify-content:space-between;
+  padding-top:12px;
+  border-top:1px solid var(--border-subtle);
+}
+.dept-metric{font-family:'Geist Mono',monospace;font-size:10px;color:var(--text-secondary)}
+.dept-metric span{color:var(--dc-color,var(--gold))}
+.dept-cta{
+  font-family:'Geist Mono',monospace;
+  font-size:10px;
+  color:var(--dc-color,var(--gold));
+  letter-spacing:.05em;
+}
+
+/* ─── CHAT MODAL ─── */
+.chat-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.82);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  z-index:200;
+  display:none;
+  align-items:center;justify-content:center;
+}
 .chat-overlay.open{display:flex}
-.chat-modal{background:var(--bg2);border:1px solid var(--border);border-radius:18px;width:620px;max-width:95vw;height:78vh;max-height:680px;display:flex;flex-direction:column;animation:slideUp .25s ease;overflow:hidden}
-@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-.chat-header{padding:18px 22px 14px;border-bottom:1px solid var(--border-subtle);display:flex;align-items:center;gap:14px;flex-shrink:0}
-.chat-ava{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-.chat-agent-name{font-family:'DM Serif Display',serif;font-size:17px;line-height:1;margin-bottom:2px}
-.chat-agent-role{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em}
-.chat-close{margin-left:auto;font-size:18px;color:var(--text-dim);cursor:pointer;background:none;border:none;padding:4px}
-.chat-close:hover{color:var(--text)}
-.chat-messages{flex:1;overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
-.chat-messages::-webkit-scrollbar{width:4px}
-.chat-messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-.msg{display:flex;gap:10px;max-width:88%}
+.chat-shell{
+  background:var(--bg-mist);
+  border:1px solid var(--border-mid);
+  border-radius:var(--r-xl);
+  padding:2px;
+  width:600px;max-width:95vw;
+  height:80vh;max-height:680px;
+  animation:modalIn 350ms var(--spring);
+  display:flex;flex-direction:column;
+}
+@keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.chat-core{
+  background:var(--bg-raise);
+  border-radius:calc(var(--r-xl) - 3px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+  display:flex;flex-direction:column;
+  height:100%;overflow:hidden;
+}
+.chat-head{
+  padding:18px 22px 14px;
+  border-bottom:1px solid var(--border-subtle);
+  display:flex;align-items:center;gap:12px;
+  flex-shrink:0;
+}
+.chat-ava{
+  width:44px;height:44px;
+  border-radius:var(--r-sm);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;
+}
+.chat-agent-name{
+  font-family:'Geist',sans-serif;
+  font-size:16px;font-weight:600;
+  letter-spacing:-.02em;margin-bottom:2px;
+}
+.chat-agent-role{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.1em}
+.chat-x{
+  margin-left:auto;
+  width:30px;height:30px;
+  border-radius:50%;
+  background:var(--bg-mist2);
+  border:1px solid var(--border-subtle);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;color:var(--text-secondary);
+  cursor:pointer;
+  transition:all 250ms var(--spring);
+}
+.chat-x:hover{background:var(--bg-float);color:var(--text-primary)}
+.chat-msgs{
+  flex:1;overflow-y:auto;
+  padding:18px 22px;
+  display:flex;flex-direction:column;gap:12px;
+  scroll-behavior:smooth;
+}
+.chat-msgs::-webkit-scrollbar{width:3px}
+.chat-msgs::-webkit-scrollbar-thumb{background:var(--border-subtle);border-radius:2px}
+.msg{display:flex;gap:9px;max-width:87%}
 .msg.user{align-self:flex-end;flex-direction:row-reverse}
 .msg.agent{align-self:flex-start}
-.msg-ava{width:28px;height:28px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;margin-top:2px}
-.msg.user .msg-ava{background:var(--gold-dim);border:1px solid var(--border);font-size:11px}
-.msg-bubble{padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.65}
-.msg.agent .msg-bubble{background:var(--bg4);border:1px solid var(--border-subtle);color:var(--text);border-top-left-radius:3px}
-.msg.user .msg-bubble{background:var(--gold-dim);border:1px solid var(--border);color:var(--text);border-top-right-radius:3px}
-.msg-time{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted);margin-top:3px}
+.msg-ava{
+  width:28px;height:28px;
+  border-radius:7px;
+  flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;margin-top:2px;
+}
+.msg.user .msg-ava{background:var(--gold-dim);border:1px solid var(--border-gold);color:var(--gold);font-size:10px}
+.msg-bubble{
+  padding:10px 14px;
+  border-radius:14px;
+  font-size:13px;line-height:1.7;
+  letter-spacing:-.01em;
+}
+.msg.agent .msg-bubble{
+  background:var(--bg-float);
+  border:1px solid var(--border-subtle);
+  color:var(--text-primary);
+  border-top-left-radius:3px;
+}
+.msg.user .msg-bubble{
+  background:var(--gold-dim);
+  border:1px solid var(--border-gold);
+  color:var(--text-primary);
+  border-top-right-radius:3px;
+}
+.msg-time{font-family:'Geist Mono',monospace;font-size:9px;color:var(--text-muted);margin-top:3px}
 .msg.user .msg-time{text-align:right}
-.typing-indicator{display:flex;gap:5px;padding:12px 14px}
-.typing-dot{width:7px;height:7px;border-radius:50%;background:var(--text-muted);animation:typing .9s ease-in-out infinite}
-.typing-dot:nth-child(2){animation-delay:.15s}
-.typing-dot:nth-child(3){animation-delay:.3s}
-@keyframes typing{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-6px);opacity:1}}
-.chat-welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:12px;text-align:center;padding:30px;color:var(--text-dim)}
-.chat-welcome-icon{font-size:36px;margin-bottom:4px}
-.chat-welcome-title{font-family:'DM Serif Display',serif;font-size:19px;color:var(--text)}
-.chat-welcome-desc{font-size:12px;line-height:1.7;max-width:360px}
-.quick-prompts{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-top:4px}
-.quick-prompt{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:6px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg4);color:var(--text-dim);cursor:pointer;transition:all .2s}
-.quick-prompt:hover{border-color:var(--agent-color,var(--gold));color:var(--agent-color,var(--gold))}
-.chat-input-area{padding:14px 18px;border-top:1px solid var(--border-subtle);display:flex;gap:10px;align-items:flex-end;flex-shrink:0}
-.chat-textarea{flex:1;background:var(--bg4);border:1px solid var(--border-subtle);border-radius:9px;padding:9px 13px;color:var(--text);font-family:'Noto Sans TC',sans-serif;font-size:13px;resize:none;outline:none;min-height:40px;max-height:110px;line-height:1.5;transition:border-color .2s}
-.chat-textarea:focus{border-color:var(--border)}
+.typing-wrap{display:flex;gap:4px;padding:10px 14px}
+.typing-dot{width:6px;height:6px;border-radius:50%;background:var(--text-muted);animation:typingBounce .8s var(--ease-out) infinite}
+.typing-dot:nth-child(2){animation-delay:.14s}
+.typing-dot:nth-child(3){animation-delay:.28s}
+@keyframes typingBounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:1}}
+.chat-welcome{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  flex:1;gap:12px;text-align:center;padding:32px;
+}
+.chat-welcome-icon{font-size:40px;margin-bottom:4px}
+.chat-welcome-title{
+  font-family:'DM Serif Display',serif;
+  font-size:20px;color:var(--text-primary);
+  letter-spacing:-.01em;
+}
+.chat-welcome-desc{font-size:12px;color:var(--text-secondary);line-height:1.7;max-width:340px}
+.quick-pills{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-top:6px}
+.quick-pill{
+  font-family:'Geist Mono',monospace;font-size:10px;
+  padding:6px 14px;
+  border-radius:var(--r-full);
+  border:1px solid var(--border-subtle);
+  background:var(--bg-mist);
+  color:var(--text-secondary);
+  cursor:pointer;
+  transition:all 250ms var(--spring);
+}
+.quick-pill:hover{border-color:var(--agent-color,var(--gold));color:var(--agent-color,var(--gold))}
+.chat-input-row{
+  padding:14px 16px;
+  border-top:1px solid var(--border-subtle);
+  display:flex;gap:9px;align-items:flex-end;
+  flex-shrink:0;
+}
+.chat-textarea{
+  flex:1;
+  background:var(--bg-float);
+  border:1px solid var(--border-subtle);
+  border-radius:var(--r-sm);
+  padding:9px 13px;
+  color:var(--text-primary);
+  font-family:'Geist','Noto Sans TC',sans-serif;
+  font-size:13px;
+  resize:none;outline:none;
+  min-height:40px;max-height:110px;
+  line-height:1.55;
+  transition:border-color 250ms var(--spring);
+}
+.chat-textarea:focus{border-color:var(--border-mid)}
 .chat-textarea::placeholder{color:var(--text-muted)}
-.send-btn{width:40px;height:40px;border-radius:9px;flex-shrink:0;background:var(--gold-dim);border:1px solid var(--border);color:var(--gold);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .2s}
-.send-btn:hover{background:var(--gold-glow)}
-.send-btn:disabled{opacity:.4;cursor:not-allowed}
-.token-bar{padding:5px 18px;background:var(--bg);border-top:1px solid var(--border-subtle);display:flex;align-items:center;justify-content:space-between}
-.token-info{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted)}
-.token-info span{color:var(--text-dim)}
+.chat-send{
+  width:40px;height:40px;
+  border-radius:var(--r-sm);
+  background:var(--gold-dim);
+  border:1px solid var(--border-gold);
+  color:var(--gold);
+  cursor:pointer;font-size:14px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 250ms var(--spring);
+  flex-shrink:0;
+}
+.chat-send:hover{background:var(--gold-mid)}
+.chat-send:active{transform:scale(.96)}
+.chat-send:disabled{opacity:.4;cursor:not-allowed}
+.token-row{
+  padding:5px 18px;
+  background:var(--bg-depth);
+  border-top:1px solid var(--border-subtle);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.token-txt{font-family:'Geist Mono',monospace;font-size:9px;color:var(--text-muted)}
+.token-txt span{color:var(--text-secondary)}
 
-@media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr)}.dept-grid{grid-template-columns:repeat(2,1fr)}.workflow-grid{grid-template-columns:1fr}.two-col{grid-template-columns:1fr}.sidebar{width:190px}}
+/* ─── TOAST ─── */
+.toast-stack{position:fixed;bottom:22px;right:22px;z-index:9998;display:flex;flex-direction:column;gap:7px}
+.toast{
+  padding:11px 16px;
+  border-radius:var(--r-sm);
+  font-family:'Geist Mono',monospace;
+  font-size:11px;letter-spacing:.04em;
+  animation:toastSlide 300ms var(--spring);
+  border:1px solid;
+  max-width:300px;
+  backdrop-filter:blur(8px);
+}
+.toast.success{background:rgba(62,207,142,.12);color:var(--green);border-color:rgba(62,207,142,.25)}
+.toast.error{background:rgba(224,82,82,.12);color:var(--red);border-color:rgba(224,82,82,.25)}
+.toast.info{background:var(--gold-dim);color:var(--gold-bright);border-color:var(--border-gold)}
+@keyframes toastSlide{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:900px){
+  .stats-bento{grid-template-columns:repeat(2,1fr)}
+  .workflow-bento{grid-template-columns:1fr;gap:10px}
+  .wf-card.span-2,.wf-card.span-3,.wf-card.span-4{grid-column:span 1}
+  .two-col{grid-template-columns:1fr}
+  .dept-bento{grid-template-columns:repeat(2,1fr)}
+  .sidebar{width:190px}
+}
+@media(max-width:600px){
+  .sidebar{display:none}
+  .dept-bento{grid-template-columns:1fr}
+  .page{padding:16px}
+}
 </style>
 </head>
 <body>
 <div class="app">
+
+  <!-- SIDEBAR -->
   <nav class="sidebar">
     <div class="sidebar-logo">
-      <div class="logo-mark">NOX</div>
-      <div class="logo-sub">AI COMPANY OS · v3</div>
+      <div class="logo-wordmark">NOX</div>
+      <div class="logo-tagline">AI Company OS · v3</div>
     </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">主控台</div>
-      <div class="nav-item active" onclick="nav('dashboard',this)"><span class="nav-icon">⬡</span>總覽儀表板</div>
-      <div class="nav-item" onclick="nav('workflows',this)"><span class="nav-icon">⚡</span>自動化執行<span class="nav-badge">8</span></div>
-      <div class="nav-item" onclick="nav('departments',this)"><span class="nav-icon">◫</span>部門與員工</div>
+    <div class="nav-section">
+      <div class="nav-label">主控台</div>
+      <div class="nav-item active" onclick="nav('dashboard',this)">
+        <span class="nav-icon">⬡</span>總覽儀表板
+      </div>
+      <div class="nav-item" onclick="nav('workflows',this)">
+        <span class="nav-icon">⚡</span>自動化執行
+        <span class="nav-badge">8</span>
+      </div>
+      <div class="nav-item" onclick="nav('departments',this)">
+        <span class="nav-icon">◫</span>部門與員工
+      </div>
     </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">管理</div>
-      <div class="nav-item" onclick="nav('tasks',this)"><span class="nav-icon">✦</span>任務佇列<span class="nav-badge">5</span></div>
-      <div class="nav-item" onclick="alert('開發中')"><span class="nav-icon">◈</span>效能報表</div>
+    <div class="nav-section">
+      <div class="nav-label">管理</div>
+      <div class="nav-item" onclick="nav('tasks',this)">
+        <span class="nav-icon">✦</span>任務佇列
+        <span class="nav-badge">5</span>
+      </div>
+      <div class="nav-item" onclick="showToast('功能開發中','info')">
+        <span class="nav-icon">◈</span>效能報表
+      </div>
     </div>
-    <div class="sidebar-bottom">
-      <div class="pulse-row"><div class="pulse-dot"></div><span>所有系統正常運行</span></div>
+    <div class="sidebar-foot">
+      <div class="status-pill">
+        <div class="status-dot"></div>
+        <span>所有系統運行中</span>
+      </div>
     </div>
   </nav>
 
+  <!-- MAIN -->
   <main class="main">
     <div class="topbar">
       <div class="topbar-title" id="page-title">AI 智能公司管理系統</div>
       <div class="topbar-right">
-        <span class="live-badge"><span class="live-dot"></span>LIVE</span>
-        <div class="topbar-time" id="clock">--:--:--</div>
+        <div class="live-indicator"><div class="live-dot"></div>LIVE</div>
+        <div class="clock" id="clock">--:--:--</div>
       </div>
     </div>
 
@@ -211,31 +826,51 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <div class="page active" id="page-dashboard">
       <div class="section-header">
         <h1 class="section-title">總覽儀表板</h1>
-        <span class="section-sub">OVERVIEW</span>
-      </div>
-      <div class="stats-row">
-        <div class="stat-card"><div class="stat-label">活躍 Agents</div><div class="stat-value">23</div><div class="stat-change">▲ 全部上線</div></div>
-        <div class="stat-card"><div class="stat-label">今日完成任務</div><div class="stat-value">147</div><div class="stat-change">▲ +32% vs 昨日</div></div>
-        <div class="stat-card"><div class="stat-label">自動化流程</div><div class="stat-value">8</div><div class="stat-change">▲ 全部啟用</div></div>
-        <div class="stat-card"><div class="stat-label">節省人力時數</div><div class="stat-value">84h</div><div class="stat-change">▲ 本週累計</div></div>
+        <span class="section-eyebrow">Overview</span>
       </div>
 
-      <div class="section-header" style="margin-top:8px">
-        <h2 class="section-title" style="font-size:18px">快速執行自動化</h2>
-        <span class="section-sub">點擊立即觸發 Make 流程</span>
+      <div class="stats-bento">
+        <div class="bezel"><div class="bezel-inner">
+          <div class="stat-label">活躍 Agents</div>
+          <div class="stat-value">23</div>
+          <div class="stat-delta">▲ 全部上線</div>
+        </div></div>
+        <div class="bezel"><div class="bezel-inner">
+          <div class="stat-label">今日完成任務</div>
+          <div class="stat-value">147</div>
+          <div class="stat-delta">▲ +32% vs 昨日</div>
+        </div></div>
+        <div class="bezel"><div class="bezel-inner">
+          <div class="stat-label">自動化流程</div>
+          <div class="stat-value">8</div>
+          <div class="stat-delta">▲ 全部啟用</div>
+        </div></div>
+        <div class="bezel"><div class="bezel-inner">
+          <div class="stat-label">節省人力時數</div>
+          <div class="stat-value">84h</div>
+          <div class="stat-delta">▲ 本週累計</div>
+        </div></div>
       </div>
-      <div class="workflow-grid" id="quick-workflows"></div>
 
-      <div style="margin-top:28px">
-        <div class="two-col">
-          <div class="panel">
-            <div class="panel-header"><span class="panel-title">即時任務動態</span><span class="panel-count">8 事件</span></div>
-            <div id="task-feed"></div>
+      <div class="section-header">
+        <h2 class="section-title" style="font-size:17px">快速執行</h2>
+        <span class="section-eyebrow">點擊立即觸發 Make 流程</span>
+      </div>
+      <div class="workflow-bento" id="quick-wf"></div>
+
+      <div class="two-col" style="margin-top:12px">
+        <div class="panel">
+          <div class="panel-head">
+            <span class="panel-title">即時任務動態</span>
+            <span class="panel-count">6 事件</span>
           </div>
-          <div class="panel">
-            <div class="panel-header"><span class="panel-title">執行記錄</span></div>
-            <div id="exec-log"></div>
+          <div id="task-feed"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <span class="panel-title">執行記錄</span>
           </div>
+          <div id="exec-log"><div style="padding:18px;font-size:12px;color:var(--text-muted);text-align:center">尚無執行記錄</div></div>
         </div>
       </div>
     </div>
@@ -244,22 +879,30 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <div class="page" id="page-workflows">
       <div class="section-header">
         <h1 class="section-title">自動化執行中心</h1>
-        <span class="section-sub">點擊任意流程立即觸發</span>
+        <span class="section-eyebrow">點擊任意流程立即觸發</span>
       </div>
-      <div class="workflow-grid" id="all-workflows"></div>
+      <div class="workflow-bento" id="all-wf"></div>
     </div>
 
     <!-- DEPARTMENTS -->
     <div class="page" id="page-departments">
-      <div class="section-header"><h1 class="section-title">部門與員工</h1><span class="section-sub">點擊開啟 AI 對話</span></div>
-      <div class="dept-grid" id="dept-grid"></div>
+      <div class="section-header">
+        <h1 class="section-title">部門與員工</h1>
+        <span class="section-eyebrow">點擊開啟 AI 對話</span>
+      </div>
+      <div class="dept-bento" id="dept-bento"></div>
     </div>
 
     <!-- TASKS -->
     <div class="page" id="page-tasks">
-      <div class="section-header"><h1 class="section-title">任務佇列</h1></div>
+      <div class="section-header">
+        <h1 class="section-title">任務佇列</h1>
+      </div>
       <div class="panel">
-        <div class="panel-header"><span class="panel-title">待處理任務</span><span class="panel-count">5 個</span></div>
+        <div class="panel-head">
+          <span class="panel-title">待處理任務</span>
+          <span class="panel-count">5 個</span>
+        </div>
         <div id="task-queue"></div>
       </div>
     </div>
@@ -268,455 +911,384 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
 <!-- CHAT MODAL -->
 <div class="chat-overlay" id="chat-overlay">
-  <div class="chat-modal">
-    <div class="chat-header" id="chat-header">
-      <div class="chat-ava" id="chat-ava"></div>
-      <div><div class="chat-agent-name" id="chat-name"></div><div class="chat-agent-role" id="chat-role"></div></div>
-      <button class="chat-close" onclick="closeChat()">✕</button>
-    </div>
-    <div class="chat-messages" id="chat-messages"></div>
-    <div class="chat-input-area">
-      <textarea class="chat-textarea" id="chat-input" rows="1" placeholder="輸入任務或問題..." onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-      <button class="send-btn" id="send-btn" onclick="sendMessage()">➤</button>
-    </div>
-    <div class="token-bar">
-      <div class="token-info">Token 消耗：<span id="token-count">0</span></div>
-      <div class="token-info">Max：<span>800</span> · 單次請求</div>
+  <div class="chat-shell">
+    <div class="chat-core">
+      <div class="chat-head" id="chat-head">
+        <div class="chat-ava" id="chat-ava"></div>
+        <div>
+          <div class="chat-agent-name" id="chat-name"></div>
+          <div class="chat-agent-role" id="chat-role"></div>
+        </div>
+        <button class="chat-x" onclick="closeChat()">✕</button>
+      </div>
+      <div class="chat-msgs" id="chat-msgs"></div>
+      <div class="chat-input-row">
+        <textarea class="chat-textarea" id="chat-input" rows="1" placeholder="輸入任務或問題..." onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="chat-send" id="chat-send" onclick="sendMsg()">➤</button>
+      </div>
+      <div class="token-row">
+        <div class="token-txt">Token：<span id="token-count">0</span></div>
+        <div class="token-txt">Max <span>800</span> · 單次請求</div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- TOAST -->
-<div class="toast-container" id="toast-container"></div>
+<div class="toast-stack" id="toast-stack"></div>
 
 <script>
-// ═══════════════════════════════
-// CONFIG — 部署後填入 Netlify URL
-// ═══════════════════════════════
-// Make Webhook URLs — 直接觸發
+// ═══ CONFIG ═══
 const MAKE_WEBHOOKS = {
   'seo-report': 'https://hook.eu1.make.com/ipudnfxc29rc4l32quajxukx63qgs7vd',
-  'social-posts': '',
-  'bizdev-proposal': '',
-  'ceo-report': '',
-  'collector-newsletter': '',
-  'invoice-process': '',
-  'bug-report': '',
-  'canva-design': ''
 };
 
-// ═══════════════════════════════
-// WORKFLOWS DATA
-// ═══════════════════════════════
-const workflows = [
-  {
-    id: 'seo-report',
-    name: 'SEO 月報自動生成',
-    dept: '行銷部門',
-    icon: '🔍',
-    color: 'var(--blue)',
-    bg: 'var(--blue-dim)',
-    border: 'rgba(91,141,217,.3)',
-    desc: '呼叫 Claude API 生成本月 SEO 月報，自動寄送到你的 Gmail',
-    tags: ['Anthropic Claude', 'Gmail', 'Make'],
-    status: '已串接',
-    lastRun: '剛才執行成功'
-  },
-  {
-    id: 'social-posts',
-    name: '社群貼文草稿生成',
-    dept: '行銷部門',
-    icon: '📱',
-    color: 'var(--purple)',
-    bg: 'var(--purple-dim)',
-    border: 'rgba(155,109,217,.3)',
-    desc: '自動生成 IG / LINE / Facebook 本週貼文草稿',
-    tags: ['Claude API', 'Make'],
-    status: '待建立',
-    lastRun: '尚未執行'
-  },
-  {
-    id: 'bizdev-proposal',
-    name: '業務提案自動生成',
-    dept: '業務開發',
-    icon: '📝',
-    color: 'var(--green)',
-    bg: 'var(--green-dim)',
-    border: 'rgba(76,175,125,.3)',
-    desc: '根據客戶資料自動生成客製化提案，存入 Airtable',
-    tags: ['Claude API', 'Airtable', 'Make'],
-    status: '待建立',
-    lastRun: '尚未執行'
-  },
-  {
-    id: 'ceo-report',
-    name: 'CEO 週報彙整',
-    dept: '管理部門',
-    icon: '📊',
-    color: 'var(--gold)',
-    bg: 'var(--gold-dim)',
-    border: 'rgba(201,168,76,.3)',
-    desc: '彙整各部門數據，生成 CEO 決策摘要並寄送',
-    tags: ['Claude API', 'Gmail', 'Make'],
-    status: '待建立',
-    lastRun: '尚未執行'
-  },
-  {
-    id: 'collector-newsletter',
-    name: '藏家電子報生成',
-    dept: '藝術商業',
-    icon: '💌',
-    color: 'var(--red)',
-    bg: 'var(--red-dim)',
-    border: 'rgba(201,76,76,.3)',
-    desc: '自動生成印象畫廊藏家電子報草稿，包含藝術家與作品亮點',
-    tags: ['Claude API', 'Airtable', 'Gmail'],
-    status: '待建立',
-    lastRun: '尚未執行'
-  },
-  {
-    id: 'invoice-process',
-    name: '發票自動處理',
-    dept: '財務行政',
-    icon: '🧾',
-    color: 'var(--gold)',
-    bg: 'var(--gold-dim)',
-    border: 'rgba(201,168,76,.3)',
-    desc: '偵測 Gmail 新發票 → 解析 PDF → 自動填入試算表',
-    tags: ['Gmail', 'Claude API', 'Google Sheets'],
-    status: '待建立',
-    lastRun: '尚未執行'
-  },
-  {
-    id: 'bug-report',
-    name: 'Bug 自動分類回報',
-    dept: '技術部門',
-    icon: '🐛',
-    color: 'var(--orange)',
-    bg: 'var(--orange-dim)',
-    border: 'rgba(217,124,59,.3)',
-    desc: '接收錯誤回報 → 自動分類優先級 → 生成修復建議',
-    tags: ['Claude API', 'Make'],
-    status: '待建立',
-    lastRun: '尚未執行'
-  },
-  {
-    id: 'canva-design',
-    name: 'Canva 設計自動提案',
-    dept: '設計部門',
-    icon: '🎨',
-    color: 'var(--purple)',
-    bg: 'var(--purple-dim)',
-    border: 'rgba(155,109,217,.3)',
-    desc: '收到設計 Brief → 自動生成 3 種風格 Canva 設計稿',
-    tags: ['Claude API', 'Canva', 'Make'],
-    status: '待建立',
-    lastRun: '尚未執行'
-  }
+// ═══ WORKFLOWS ═══
+const WFS = [
+  { id:'seo-report', name:'SEO 月報自動生成', dept:'行銷部門', icon:'🔍',
+    color:'var(--blue)', bg:'var(--blue-dim)', border:'rgba(79,142,247,.25)',
+    desc:'呼叫 Claude 生成本月 SEO 月報，自動寄送到 Gmail',
+    tags:['Anthropic Claude','Gmail','Make'], status:'已串接', lastRun:'剛才執行成功',
+    span:'span-2' },
+  { id:'social-posts', name:'社群貼文草稿', dept:'行銷部門', icon:'📱',
+    color:'var(--purple)', bg:'var(--purple-dim)', border:'rgba(167,139,250,.25)',
+    desc:'自動生成 IG / LINE / Facebook 本週貼文草稿',
+    tags:['Claude API','Make'], status:'待建立', lastRun:'尚未執行',
+    span:'span-2' },
+  { id:'bizdev-proposal', name:'業務提案生成', dept:'業務開發', icon:'📝',
+    color:'var(--green)', bg:'var(--green-dim)', border:'rgba(62,207,142,.25)',
+    desc:'根據客戶資料自動生成客製化提案，存入 Airtable',
+    tags:['Claude API','Airtable'], status:'待建立', lastRun:'尚未執行',
+    span:'span-2' },
+  { id:'ceo-report', name:'CEO 週報彙整', dept:'管理部門', icon:'📊',
+    color:'var(--gold)', bg:'var(--gold-dim)', border:'var(--border-gold)',
+    desc:'彙整各部門數據，生成 CEO 決策摘要並自動寄送',
+    tags:['Claude API','Gmail'], status:'待建立', lastRun:'尚未執行',
+    span:'span-3' },
+  { id:'collector-newsletter', name:'藏家電子報', dept:'藝術商業', icon:'💌',
+    color:'var(--red)', bg:'var(--red-dim)', border:'rgba(224,82,82,.25)',
+    desc:'自動生成印象畫廊藏家電子報草稿',
+    tags:['Claude API','Gmail'], status:'待建立', lastRun:'尚未執行',
+    span:'span-3' },
+  { id:'invoice-process', name:'發票自動處理', dept:'財務行政', icon:'🧾',
+    color:'var(--gold)', bg:'var(--gold-dim)', border:'var(--border-gold)',
+    desc:'Gmail 發票 → 解析 → 自動填入試算表',
+    tags:['Gmail','Claude API'], status:'待建立', lastRun:'尚未執行',
+    span:'span-2' },
+  { id:'bug-report', name:'Bug 自動分類', dept:'技術部門', icon:'🐛',
+    color:'var(--orange)', bg:'var(--orange-dim)', border:'rgba(247,130,60,.25)',
+    desc:'接收錯誤回報 → 分類優先級 → 生成修復建議',
+    tags:['Claude API','Make'], status:'待建立', lastRun:'尚未執行',
+    span:'span-2' },
+  { id:'canva-design', name:'Canva 設計提案', dept:'設計部門', icon:'🎨',
+    color:'var(--purple)', bg:'var(--purple-dim)', border:'rgba(167,139,250,.25)',
+    desc:'收到 Brief → 自動生成 3 種風格設計稿',
+    tags:['Claude API','Canva'], status:'待建立', lastRun:'尚未執行',
+    span:'span-2' },
 ];
 
-const execLog = [];
+const EXEC_LOG = [];
 
-// ═══════════════════════════════
-// TRIGGER WORKFLOW
-// ═══════════════════════════════
-async function triggerWorkflow(workflowId, btnEl) {
-  const wf = workflows.find(w => w.id === workflowId);
+// ═══ TRIGGER ═══
+async function trigger(id, btn) {
+  const wf = WFS.find(w => w.id === id);
   if (!wf) return;
-
   if (wf.status === '待建立') {
-    showToast(`「${wf.name}」尚未串接 Make，請先建立流程`, 'info');
+    showToast(`「${wf.name}」尚未串接 Make`, 'info');
     return;
   }
+  const url = MAKE_WEBHOOKS[id];
+  if (!url) { showToast('Webhook 未設定', 'error'); return; }
 
-  const webhookUrl = MAKE_WEBHOOKS[workflowId];
-  if (!webhookUrl) {
-    showToast(`「${wf.name}」的 Webhook 尚未設定`, 'error');
-    return;
-  }
-
-  btnEl.disabled = true;
-  btnEl.classList.add('loading');
-  btnEl.innerHTML = '⟳ 執行中...';
-  showToast(`正在觸發「${wf.name}」...`, 'info');
+  btn.disabled = true;
+  btn.classList.add('loading');
+  btn.innerHTML = '⟳ 執行中';
+  showToast(`觸發「${wf.name}」中...`, 'info');
 
   try {
-    // 用 no-cors 模式直接打 Make Webhook（Make 接受跨域請求）
-    await fetch(webhookUrl, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ trigger: workflowId, timestamp: new Date().toISOString() })
-    });
-    // no-cors 模式無法讀回應，但只要沒丟出 error 就代表成功送出
-    showToast(`✅ 「${wf.name}」已觸發！Make 正在執行，稍後查收 Gmail。`, 'success');
-    addExecLog(wf.name, '已觸發', wf.color);
-  } catch (err) {
-    showToast(`❌ 觸發失敗：${err.message}`, 'error');
-    addExecLog(wf.name, '失敗', 'var(--red)');
+    await fetch(url, { method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ trigger: id, ts: Date.now() }) });
+    showToast(`「${wf.name}」已觸發，稍後查收 Gmail`, 'success');
+    addLog(wf.name, '已觸發', wf.color);
+  } catch(e) {
+    showToast(`觸發失敗：${e.message}`, 'error');
+    addLog(wf.name, '失敗', 'var(--red)');
   }
-
-  btnEl.disabled = false;
-  btnEl.classList.remove('loading');
-  btnEl.innerHTML = '▶ 立即執行';
+  btn.disabled = false;
+  btn.classList.remove('loading');
+  btn.innerHTML = '▶ 立即執行<span class="btn-arrow">↗</span>';
 }
 
-function addExecLog(name, status, color) {
-  const now = new Date().toLocaleTimeString('zh-TW', { hour12: false });
-  execLog.unshift({ name, status, color, time: now });
-  renderExecLog();
+function addLog(name, status, color) {
+  const t = new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  EXEC_LOG.unshift({ name, status, color, t });
+  renderLog();
 }
-
-function renderExecLog() {
+function renderLog() {
   const el = document.getElementById('exec-log');
   if (!el) return;
-  el.innerHTML = execLog.slice(0, 8).map(e => `
+  el.innerHTML = EXEC_LOG.slice(0,8).map(e => `
     <div class="task-item">
       <div class="task-dot" style="background:${e.color}"></div>
-      <div><div class="task-title">${e.name}</div><div class="task-meta">${e.status}</div></div>
-      <div class="task-time">${e.time}</div>
-    </div>`).join('') || '<div style="padding:18px;font-size:12px;color:var(--text-muted);text-align:center">尚無執行記錄</div>';
+      <div><div class="task-name">${e.name}</div><div class="task-dept">${e.status}</div></div>
+      <div class="task-time">${e.t}</div>
+    </div>`).join('') || '<div style="padding:18px;font-size:12px;color:var(--text-muted);text-align:center">尚無記錄</div>';
 }
 
-// ═══════════════════════════════
-// RENDER WORKFLOWS
-// ═══════════════════════════════
-function makeWorkflowCard(wf, showFull) {
-  const isReady = wf.status === '已串接';
+// ═══ MAKE WF CARD ═══
+function makeWfCard(wf) {
+  const ready = wf.status === '已串接';
   const el = document.createElement('div');
-  el.className = 'workflow-card';
+  el.className = `wf-card ${wf.span || ''}`;
   el.style.cssText = `--wf-color:${wf.color};--wf-bg:${wf.bg};--wf-border:${wf.border}`;
   el.innerHTML = `
-    <div class="wf-header">
-      <div class="wf-icon">${wf.icon}</div>
-      <div class="wf-status">${wf.status}</div>
-    </div>
-    <div class="wf-name">${wf.name}</div>
-    <div class="wf-dept">${wf.dept}</div>
-    <div class="wf-desc">${wf.desc}</div>
-    <div class="wf-tags">${wf.tags.map(t => `<span class="wf-tag">${t}</span>`).join('')}</div>
-    <div class="wf-footer">
-      <div class="wf-last-run">上次：${wf.lastRun}</div>
-      <button class="trigger-btn" id="btn-${wf.id}" onclick="triggerWorkflow('${wf.id}', this)">
-        ${isReady ? '▶ 立即執行' : '+ 建立流程'}
-      </button>
-    </div>
-  `;
+    <div class="wf-inner">
+      <div class="wf-head">
+        <div class="wf-icon-wrap">${wf.icon}</div>
+        <div class="wf-badge">${wf.status}</div>
+      </div>
+      <div class="wf-name">${wf.name}</div>
+      <div class="wf-dept">${wf.dept}</div>
+      <div class="wf-desc">${wf.desc}</div>
+      <div class="wf-tags">${wf.tags.map(t=>`<span class="wf-tag">${t}</span>`).join('')}</div>
+      <div class="wf-foot">
+        <div class="wf-last">上次：${wf.lastRun}</div>
+        <button class="trigger-btn" id="btn-${wf.id}" onclick="trigger('${wf.id}',this)">
+          ${ready ? '▶ 立即執行' : '+ 建立流程'}
+          <span class="btn-arrow">↗</span>
+        </button>
+      </div>
+    </div>`;
   return el;
 }
 
-// ═══════════════════════════════
-// DEPARTMENTS & AGENTS
-// ═══════════════════════════════
+// ═══ AGENTS ═══
 const AGENTS = {
-  marketing: { emoji:'📣', name:'行銷部門 Agent', role:'Marketing · SEO & 內容', color:'var(--blue)', bg:'var(--blue-dim)', systemPrompt:'你是 NOX Creative Technology 行銷部門的 AI Agent，負責 SEO、社群貼文、電子報。請用繁體中文回覆，直接提供可用的內容草稿。', quickPrompts:['寫一篇 IG 貼文','SEO 關鍵字建議','生成 Email 草稿','印象畫廊推廣策略'] },
-  design: { emoji:'🎨', name:'設計部門 Agent', role:'Design · 視覺提案', color:'var(--purple)', bg:'var(--purple-dim)', systemPrompt:'你是 NOX 設計部門 AI Agent，提供視覺設計方向、品牌建議。NOX 風格：奢華黑金。請用繁體中文回覆。', quickPrompts:['黑金品牌視覺方向','展覽海報概念','名片設計建議','社群視覺規範'] },
-  bizdev: { emoji:'💼', name:'業務開發 Agent', role:'Business Dev · 提案', color:'var(--green)', bg:'var(--green-dim)', systemPrompt:'你是 NOX 業務開發 AI Agent，撰寫商業提案、跟進訊息。服務定位高端市場。請用繁體中文提供專業商業文案。', quickPrompts:['3D 網站提案','印象畫廊合作信函','客戶跟進草稿','服務報價建議'] },
-  tech: { emoji:'🖥️', name:'技術部門 Agent', role:'Technology · 開發', color:'var(--orange)', bg:'var(--orange-dim)', systemPrompt:'你是 NOX 技術部門 AI Agent。技術棧：React/Lovable/Supabase/Claude API/Make。了解 iPad 限制。請用繁體中文提供技術建議。', quickPrompts:['Lovable 最佳實踐','3D 畫廊架構','Supabase 設計','Claude API 整合'] },
-  art: { emoji:'🖼️', name:'藝術商業 Agent', role:'Art Business · 藝廊', color:'var(--red)', bg:'var(--red-dim)', systemPrompt:'你是 NOX 藝術商業 AI Agent，熟悉印象畫廊合作、藏家關係、藝術市場。請用典雅繁體中文回覆。', quickPrompts:['藏家電子報草稿','藝術品溯源說明','展覽邀請函','藝術市場分析'] },
-  admin: { emoji:'📊', name:'財務行政 Agent', role:'Finance & Admin', color:'var(--gold)', bg:'var(--gold-dim)', systemPrompt:'你是 NOX 財務行政 AI Agent，處理財務摘要、費用分類、定價建議。請用繁體中文提供清晰數字建議。', quickPrompts:['生成財務摘要','服務定價建議','費用分類','預算規劃'] },
-  ceo: { emoji:'🤖', name:'NOX CEO Agent', role:'Chief Executive · 決策核心', color:'var(--gold)', bg:'var(--gold-dim)', systemPrompt:'你是 NOX Creative Technology 的 AI 執行長。負責策略決策、部門協調、週報彙整。請用繁體中文給出具體可執行的建議。', quickPrompts:['生成週報摘要','優先順序建議','印象畫廊合作評估','資源分配建議'] }
+  marketing:{ emoji:'📣', name:'行銷部門 Agent', role:'Marketing · SEO & 內容',
+    color:'var(--blue)', bg:'var(--blue-dim)',
+    sys:'你是 NOX Creative Technology 行銷部門的 AI Agent，負責 SEO、社群貼文、電子報。請用繁體中文回覆，直接提供可用的內容草稿。',
+    quick:['寫一篇 IG 貼文','SEO 關鍵字建議','Email 行銷草稿','印象畫廊推廣策略'] },
+  design:{ emoji:'🎨', name:'設計部門 Agent', role:'Design · 視覺提案',
+    color:'var(--purple)', bg:'var(--purple-dim)',
+    sys:'你是 NOX 設計部門 AI Agent，提供視覺設計方向、品牌建議。NOX 風格：奢華黑金。請用繁體中文回覆。',
+    quick:['黑金品牌視覺方向','展覽海報概念','名片設計建議','社群視覺規範'] },
+  bizdev:{ emoji:'💼', name:'業務開發 Agent', role:'Business Dev · 提案',
+    color:'var(--green)', bg:'var(--green-dim)',
+    sys:'你是 NOX 業務開發 AI Agent，撰寫商業提案、跟進訊息。高端市場定位。請用繁體中文提供專業商業文案。',
+    quick:['3D 網站提案','印象畫廊合作信','客戶跟進草稿','服務報價建議'] },
+  tech:{ emoji:'🖥️', name:'技術部門 Agent', role:'Technology · 開發',
+    color:'var(--orange)', bg:'var(--orange-dim)',
+    sys:'你是 NOX 技術部門 AI Agent。技術棧：React/Lovable/Supabase/Claude API/Make。了解 iPad 限制。請用繁體中文提供技術建議。',
+    quick:['Lovable 最佳實踐','3D 畫廊架構','Supabase 設計','Claude API 整合'] },
+  art:{ emoji:'🖼️', name:'藝術商業 Agent', role:'Art Business · 藝廊',
+    color:'var(--red)', bg:'var(--red-dim)',
+    sys:'你是 NOX 藝術商業 AI Agent，熟悉印象畫廊合作、藏家關係、藝術市場。請用典雅繁體中文回覆。',
+    quick:['藏家電子報草稿','藝術品溯源說明','展覽邀請函','藝術市場分析'] },
+  admin:{ emoji:'📊', name:'財務行政 Agent', role:'Finance & Admin',
+    color:'var(--gold)', bg:'var(--gold-dim)',
+    sys:'你是 NOX 財務行政 AI Agent，處理財務摘要、費用分類、定價建議。請用繁體中文提供清晰建議。',
+    quick:['生成財務摘要','服務定價建議','費用分類','預算規劃'] },
 };
-
-const depts = [
-  { id:'marketing', name:'行銷部門', nameEn:'MARKETING', icon:'📣', color:'var(--blue)', bg:'var(--blue-dim)', border:'rgba(91,141,217,.3)', metric:'今日內容', val:'38篇' },
-  { id:'design', name:'設計部門', nameEn:'DESIGN', icon:'🎨', color:'var(--purple)', bg:'var(--purple-dim)', border:'rgba(155,109,217,.3)', metric:'今日設計', val:'7件' },
-  { id:'bizdev', name:'業務開發', nameEn:'BUSINESS DEV', icon:'💼', color:'var(--green)', bg:'var(--green-dim)', border:'rgba(76,175,125,.3)', metric:'今日提案', val:'5份' },
-  { id:'tech', name:'技術部門', nameEn:'TECHNOLOGY', icon:'🖥️', color:'var(--orange)', bg:'var(--orange-dim)', border:'rgba(217,124,59,.3)', metric:'PR 審查', val:'23件' },
-  { id:'art', name:'藝術商業', nameEn:'ART BUSINESS', icon:'🖼️', color:'var(--red)', bg:'var(--red-dim)', border:'rgba(201,76,76,.3)', metric:'作品建檔', val:'12件' },
-  { id:'admin', name:'財務行政', nameEn:'FINANCE', icon:'📊', color:'var(--gold)', bg:'var(--gold-dim)', border:'rgba(201,168,76,.3)', metric:'處理文件', val:'19份' }
+const DEPTS = [
+  { id:'marketing', name:'行銷部門', en:'MARKETING', icon:'📣', color:'var(--blue)', bg:'var(--blue-dim)', border:'rgba(79,142,247,.25)', metric:'今日內容', val:'38篇' },
+  { id:'design', name:'設計部門', en:'DESIGN', icon:'🎨', color:'var(--purple)', bg:'var(--purple-dim)', border:'rgba(167,139,250,.25)', metric:'今日設計', val:'7件' },
+  { id:'bizdev', name:'業務開發', en:'BUSINESS DEV', icon:'💼', color:'var(--green)', bg:'var(--green-dim)', border:'rgba(62,207,142,.25)', metric:'今日提案', val:'5份' },
+  { id:'tech', name:'技術部門', en:'TECHNOLOGY', icon:'🖥️', color:'var(--orange)', bg:'var(--orange-dim)', border:'rgba(247,130,60,.25)', metric:'PR 審查', val:'23件' },
+  { id:'art', name:'藝術商業', en:'ART BUSINESS', icon:'🖼️', color:'var(--red)', bg:'var(--red-dim)', border:'rgba(224,82,82,.25)', metric:'作品建檔', val:'12件' },
+  { id:'admin', name:'財務行政', en:'FINANCE', icon:'📊', color:'var(--gold)', bg:'var(--gold-dim)', border:'var(--border-gold)', metric:'處理文件', val:'19份' },
 ];
 
-const taskFeed = [
-  { title:'SEO 月報已自動生成並寄出', dept:'行銷部門', color:'var(--blue)', time:'剛才' },
-  { title:'印象畫廊提案文件已生成', dept:'業務開發', color:'var(--green)', time:'8分鐘前' },
-  { title:'3 篇 IG 貼文草稿準備審核', dept:'行銷部門', color:'var(--blue)', time:'15分鐘前' },
-  { title:'FounderMesh PR #47 審查完成', dept:'技術部門', color:'var(--orange)', time:'23分鐘前' },
-  { title:'藏家電子報草稿已產出', dept:'藝術商業', color:'var(--red)', time:'31分鐘前' },
-  { title:'本週財務摘要完成', dept:'財務行政', color:'var(--gold)', time:'1小時前' }
-];
-
-// ═══════════════════════════════
-// CHAT
-// ═══════════════════════════════
-let currentAgentId = null;
-let totalTokens = 0;
-
-function openChat(agentId) {
-  currentAgentId = agentId;
-  const agent = AGENTS[agentId];
-  document.getElementById('chat-ava').textContent = agent.emoji;
-  document.getElementById('chat-ava').style.background = agent.bg;
-  document.getElementById('chat-name').textContent = agent.name;
-  const roleEl = document.getElementById('chat-role');
-  roleEl.textContent = agent.role;
-  roleEl.style.color = agent.color;
-  const msgs = document.getElementById('chat-messages');
-  msgs.innerHTML = '';
-  totalTokens = 0;
-  document.getElementById('token-count').textContent = '0';
-  msgs.innerHTML = `<div class="chat-welcome" style="--agent-color:${agent.color}">
-    <div class="chat-welcome-icon">${agent.emoji}</div>
-    <div class="chat-welcome-title">${agent.name}</div>
+// ═══ CHAT ═══
+let curAgent = null, tokens = 0;
+function openChat(id) {
+  curAgent = id;
+  const a = AGENTS[id];
+  document.getElementById('chat-ava').textContent = a.emoji;
+  document.getElementById('chat-ava').style.background = a.bg;
+  document.getElementById('chat-name').textContent = a.name;
+  const r = document.getElementById('chat-role');
+  r.textContent = a.role; r.style.color = a.color;
+  tokens = 0; document.getElementById('token-count').textContent = '0';
+  const msgs = document.getElementById('chat-msgs');
+  msgs.innerHTML = `<div class="chat-welcome" style="--agent-color:${a.color}">
+    <div class="chat-welcome-icon">${a.emoji}</div>
+    <div class="chat-welcome-title">${a.name}</div>
     <div class="chat-welcome-desc">使用真實 Claude API。選擇快速指令或直接輸入任務。</div>
-    <div class="quick-prompts">${agent.quickPrompts.map(p=>`<div class="quick-prompt" onclick="useQuick('${p.replace(/'/g,"\\'")}')">${p}</div>`).join('')}</div>
+    <div class="quick-pills">${a.quick.map(p=>`<div class="quick-pill" onclick="useQuick('${p.replace(/'/g,"\\'")}')">${p}</div>`).join('')}</div>
   </div>`;
   document.getElementById('chat-input').value = '';
   document.getElementById('chat-overlay').classList.add('open');
 }
-
 function closeChat() {
   document.getElementById('chat-overlay').classList.remove('open');
-  currentAgentId = null;
+  curAgent = null;
 }
-
-function useQuick(p) { document.getElementById('chat-input').value = p; sendMessage(); }
-function handleKey(e) { if (e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} }
+function useQuick(p) { document.getElementById('chat-input').value = p; sendMsg(); }
+function handleKey(e) { if (e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();} }
 function autoResize(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,110)+'px'; }
 
-async function sendMessage() {
+async function sendMsg() {
   const input = document.getElementById('chat-input');
   const text = input.value.trim();
-  if (!text || !currentAgentId) return;
-  const agent = AGENTS[currentAgentId];
-  const msgs = document.getElementById('chat-messages');
+  if (!text || !curAgent) return;
+  const a = AGENTS[curAgent];
+  const msgs = document.getElementById('chat-msgs');
   msgs.querySelector('.chat-welcome')?.remove();
   appendMsg('user', text);
   input.value = ''; input.style.height = '';
-  document.getElementById('send-btn').disabled = true;
-  const tid = appendTyping(agent);
+  document.getElementById('chat-send').disabled = true;
+  const tid = appendTyping(a);
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:800, system:agent.systemPrompt, messages:[{role:'user',content:text}] })
+      body:JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:800, system:a.sys, messages:[{role:'user',content:text}] })
     });
     document.getElementById(tid)?.remove();
     if (!res.ok) throw new Error(`API ${res.status}`);
     const data = await res.json();
     const reply = data.content?.[0]?.text || '（無回應）';
-    totalTokens += (data.usage?.input_tokens||0)+(data.usage?.output_tokens||0);
-    document.getElementById('token-count').textContent = totalTokens.toLocaleString();
-    appendMsg('agent', reply, agent.emoji, agent.bg);
-  } catch(err) {
+    tokens += (data.usage?.input_tokens||0)+(data.usage?.output_tokens||0);
+    document.getElementById('token-count').textContent = tokens.toLocaleString();
+    appendMsg('agent', reply, a.emoji, a.bg);
+  } catch(e) {
     document.getElementById(tid)?.remove();
-    appendMsg('agent', `⚠️ 部署到 Netlify 後可正常呼叫 Claude API。\n錯誤：${err.message}`, '⚠️', 'var(--red-dim)');
+    appendMsg('agent', `⚠️ 部署到網站後可正常呼叫 Claude API。\n${e.message}`, '⚠️', 'var(--red-dim)');
   }
-  document.getElementById('send-btn').disabled = false;
+  document.getElementById('chat-send').disabled = false;
   msgs.scrollTop = msgs.scrollHeight;
 }
 
 function appendMsg(role, text, emoji, bg) {
-  const msgs = document.getElementById('chat-messages');
+  const msgs = document.getElementById('chat-msgs');
   const div = document.createElement('div');
   div.className = `msg ${role}`;
-  const now = new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
-  const formatted = text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
-  const ava = role==='agent' ? `<div class="msg-ava" style="background:${bg}">${emoji}</div>` : `<div class="msg-ava">你</div>`;
-  div.innerHTML = `${ava}<div><div class="msg-bubble">${formatted}</div><div class="msg-time">${now}</div></div>`;
+  const t = new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+  const fmt = text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+  const ava = role==='agent'
+    ? `<div class="msg-ava" style="background:${bg}">${emoji}</div>`
+    : `<div class="msg-ava">你</div>`;
+  div.innerHTML = `${ava}<div><div class="msg-bubble">${fmt}</div><div class="msg-time">${t}</div></div>`;
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
 }
 
 let tc = 0;
-function appendTyping(agent) {
-  const id = 'typing-'+(++tc);
-  const msgs = document.getElementById('chat-messages');
-  const div = document.createElement('div');
-  div.className = 'msg agent'; div.id = id;
-  div.innerHTML = `<div class="msg-ava" style="background:${agent.bg}">${agent.emoji}</div><div class="msg-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
-  msgs.appendChild(div); msgs.scrollTop = msgs.scrollHeight;
+function appendTyping(a) {
+  const id = 'ty-'+(++tc);
+  const msgs = document.getElementById('chat-msgs');
+  const d = document.createElement('div');
+  d.className = 'msg agent'; d.id = id;
+  d.innerHTML = `<div class="msg-ava" style="background:${a.bg}">${a.emoji}</div><div class="msg-bubble"><div class="typing-wrap"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
+  msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight;
   return id;
 }
 
-// ═══════════════════════════════
-// TOAST
-// ═══════════════════════════════
+// ═══ TOAST ═══
 function showToast(msg, type='info') {
-  const container = document.getElementById('toast-container');
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  toast.textContent = msg;
-  container.appendChild(toast);
-  setTimeout(() => toast.remove(), 4000);
+  const stack = document.getElementById('toast-stack');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  stack.appendChild(t);
+  setTimeout(() => t.remove(), 4200);
 }
 
-// ═══════════════════════════════
-// NAVIGATION
-// ═══════════════════════════════
-const titles = { dashboard:'AI 智能公司管理系統', workflows:'自動化執行中心', departments:'部門與員工', tasks:'任務佇列' };
+// ═══ NAVIGATION ═══
+const TITLES = { dashboard:'AI 智能公司管理系統', workflows:'自動化執行中心', departments:'部門與員工', tasks:'任務佇列' };
 function nav(page, el) {
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  if(el) el.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  if (el) el.classList.add('active');
   document.getElementById('page-'+page)?.classList.add('active');
-  document.getElementById('page-title').textContent = titles[page]||'NOX';
+  document.getElementById('page-title').textContent = TITLES[page] || 'NOX';
 }
 
-// ═══════════════════════════════
-// RENDER ALL
-// ═══════════════════════════════
+// ═══ RENDER ═══
 function renderAll() {
-  // Quick workflows (dashboard, first 4)
-  const qw = document.getElementById('quick-workflows');
-  if (qw) { qw.innerHTML=''; workflows.slice(0,4).forEach(wf=>qw.appendChild(makeWorkflowCard(wf))); }
+  // Quick workflows (first 4, dashboard)
+  const qw = document.getElementById('quick-wf');
+  if (qw) { qw.innerHTML=''; WFS.slice(0,4).forEach(wf=>qw.appendChild(makeWfCard(wf))); }
 
   // All workflows
-  const aw = document.getElementById('all-workflows');
-  if (aw) { aw.innerHTML=''; workflows.forEach(wf=>aw.appendChild(makeWorkflowCard(wf))); }
+  const aw = document.getElementById('all-wf');
+  if (aw) { aw.innerHTML=''; WFS.forEach(wf=>aw.appendChild(makeWfCard(wf))); }
 
-  // Dept grid
-  const dg = document.getElementById('dept-grid');
-  if (dg) {
-    dg.innerHTML = '';
-    depts.forEach(d => {
+  // Dept bento
+  const db = document.getElementById('dept-bento');
+  if (db) {
+    db.innerHTML = '';
+    DEPTS.forEach(d => {
       const el = document.createElement('div');
       el.className = 'dept-card';
-      el.style.cssText = `--dept-color:${d.color};--dept-bg:${d.bg};--dept-border:${d.border}`;
+      el.style.cssText = `--dc-color:${d.color};--dc-bg:${d.bg};--dc-border:${d.border}`;
       el.onclick = () => openChat(d.id);
-      el.innerHTML = `
-        <div class="dept-header"><div class="dept-icon">${d.icon}</div><div class="dept-pill">運行中</div></div>
+      el.innerHTML = `<div class="dept-inner">
+        <div class="dept-head">
+          <div class="dept-icon-wrap">${d.icon}</div>
+          <div class="dept-status">運行中</div>
+        </div>
         <div class="dept-name">${d.name}</div>
-        <div class="dept-name-en">${d.nameEn}</div>
-        <div class="dept-footer"><div class="dept-metric">${d.metric} <span>${d.val}</span></div><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:${d.color}">💬 對話</span></div>`;
-      dg.appendChild(el);
+        <div class="dept-name-en">${d.en}</div>
+        <div class="dept-foot">
+          <div class="dept-metric">${d.metric} <span>${d.val}</span></div>
+          <span class="dept-cta">💬 對話</span>
+        </div>
+      </div>`;
+      db.appendChild(el);
     });
   }
 
   // Task feed
   const tf = document.getElementById('task-feed');
-  if (tf) tf.innerHTML = taskFeed.map(t=>`
-    <div class="task-item">
-      <div class="task-dot" style="background:${t.color}"></div>
-      <div><div class="task-title">${t.title}</div><div class="task-meta">${t.dept}</div></div>
-      <div class="task-time">${t.time}</div>
-    </div>`).join('');
+  if (tf) tf.innerHTML = [
+    { name:'SEO 月報已自動生成並寄出', dept:'行銷部門', color:'var(--blue)', t:'剛才' },
+    { name:'印象畫廊提案文件已生成', dept:'業務開發', color:'var(--green)', t:'8分前' },
+    { name:'3 篇 IG 貼文草稿準備審核', dept:'行銷部門', color:'var(--blue)', t:'15分前' },
+    { name:'FounderMesh PR #47 審查完成', dept:'技術部門', color:'var(--orange)', t:'23分前' },
+    { name:'藏家電子報草稿已產出', dept:'藝術商業', color:'var(--red)', t:'31分前' },
+    { name:'本週財務摘要完成', dept:'財務行政', color:'var(--gold)', t:'1小時前' },
+  ].map(t=>`<div class="task-item">
+    <div class="task-dot" style="background:${t.color}"></div>
+    <div><div class="task-name">${t.name}</div><div class="task-dept">${t.dept}</div></div>
+    <div class="task-time">${t.t}</div>
+  </div>`).join('');
 
   // Task queue
   const tq = document.getElementById('task-queue');
   if (tq) tq.innerHTML = [
-    { title:'審核 SEO 月報內容', dept:'行銷部門', p:'高', c:'var(--red)' },
-    { title:'確認印象畫廊提案', dept:'業務開發', p:'高', c:'var(--red)' },
-    { title:'批准本週 IG 貼文', dept:'行銷部門', p:'中', c:'var(--orange)' },
-    { title:'檢查財務模型', dept:'技術部門', p:'中', c:'var(--orange)' },
-    { title:'藏家電子報最終確認', dept:'藝術商業', p:'低', c:'var(--blue)' }
+    { name:'審核 SEO 月報內容', dept:'行銷部門', p:'高', c:'var(--red)' },
+    { name:'確認印象畫廊提案', dept:'業務開發', p:'高', c:'var(--red)' },
+    { name:'批准本週 IG 貼文', dept:'行銷部門', p:'中', c:'var(--orange)' },
+    { name:'檢查財務模型', dept:'技術部門', p:'中', c:'var(--orange)' },
+    { name:'藏家電子報最終確認', dept:'藝術商業', p:'低', c:'var(--blue)' },
   ].map(t=>`<div class="task-item">
     <div class="task-dot" style="background:${t.c}"></div>
-    <div><div class="task-title">${t.title}</div><div class="task-meta">${t.dept}</div></div>
-    <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:${t.c};border:1px solid ${t.c}30;padding:2px 8px;border-radius:20px;white-space:nowrap">${t.p}優先</div>
+    <div><div class="task-name">${t.name}</div><div class="task-dept">${t.dept}</div></div>
+    <div style="font-family:'Geist Mono',monospace;font-size:9px;color:${t.c};border:1px solid ${t.c}25;padding:2px 8px;border-radius:var(--r-full);white-space:nowrap">${t.p}</div>
   </div>`).join('');
-
-  renderExecLog();
 }
 
 // Clock
 function tick() { document.getElementById('clock').textContent = new Date().toLocaleTimeString('zh-TW',{hour12:false}); }
 setInterval(tick,1000); tick();
 
-// Chat overlay close
-document.getElementById('chat-overlay').addEventListener('click', e=>{ if(e.target===document.getElementById('chat-overlay')) closeChat(); });
+// Close modal
+document.getElementById('chat-overlay').addEventListener('click', e => {
+  if (e.target===document.getElementById('chat-overlay')) closeChat();
+});
 
 renderAll();
+
+// Staggered entry animation
+document.querySelectorAll('.bezel,.wf-card,.dept-card').forEach((el,i) => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(16px)';
+  el.style.transition = `opacity 500ms var(--ease-out) ${i*40}ms, transform 500ms var(--ease-out) ${i*40}ms`;
+  requestAnimationFrame(() => {
+    setTimeout(() => { el.style.opacity='1'; el.style.transform='translateY(0)'; }, 50);
+  });
+});
 </script>
 </body>
 </html>
